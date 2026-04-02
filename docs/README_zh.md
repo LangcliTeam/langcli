@@ -2,7 +2,7 @@
 
 Foxcli 是一款在终端中使用的交互式 AI 编程助手, 它是基于[Claude code泄露的代码](https://github.com/claude-code-best/claude-code)进行二次开发而成。
 因此，Foxcli的使用用法与标准的Claude code是完全一样。更令人兴奋的是Foxcli与[LangRouter](https://langrouter.ai/)已深度集成，
-这样，你可以在一个正在工作的session中根据需求随意使用、切换主流的LLM 模型(包括claude OPUS 4.6, kimi-k2.5, minimax-M2.5, deepseek v3.2等)，而不会中断你的上下文。
+这样，你可以在一个正在工作的session中根据需求随意使用、切换主流的LLM 模型(包括claude OPUS 4.6, kimi k2.5, minimax M2.5, deepseek v3.2等)，而不会中断你的上下文。
 
 为何不与openRouter集成呢? openRouter的claude模型api太贵了！而且openRouter的 anthropic api接口与claude code官方的api接口的兼容性没那么好。
 

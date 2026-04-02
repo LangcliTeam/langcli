@@ -81,7 +81,7 @@ export type AutoRunIssueReason = 'feedback_survey_bad' | 'feedback_survey_good';
  */
 export function shouldAutoRunIssue(reason: AutoRunIssueReason): boolean {
   // Only for Ant users
-  if (("external" as string) !== 'ant') {
+  if ((process.env.USER_TYPE) !== 'ant') {
     return false;
   }
   switch (reason) {
@@ -100,7 +100,7 @@ export function shouldAutoRunIssue(reason: AutoRunIssueReason): boolean {
  */
 export function getAutoRunCommand(reason: AutoRunIssueReason): string {
   // Only ant builds have the /good-claude command
-  if (("external" as string) === 'ant' && reason === 'feedback_survey_good') {
+  if ((process.env.USER_TYPE) === 'ant' && reason === 'feedback_survey_good') {
     return '/good-claude';
   }
   return '/issue';
