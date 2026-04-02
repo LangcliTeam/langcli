@@ -9,7 +9,7 @@ Why not integrate with OpenRouter? OpenRouter's API for Claude models is too exp
 ## Quick Start
 
 ### LangRouter API Key Preparation
- Go to [LangRouter](https://langrouter.ai/) register an account, save your api-key, and ensure your account has sufficient balance (you can deposit $2 for testing)
+ Go to [LangRouter](https://langrouter.ai/), register an account, save your API key, and ensure your account has sufficient balance (you can deposit $2 for testing)
 
 ### Installation
 ```bash
