@@ -1,151 +1,152 @@
-// audio-capture-napi: cross-platform audio capture using SoX (rec) on macOS
-// and arecord (ALSA) on Linux. Replaces the original cpal-based native module.
 
-import { type ChildProcess, spawn, spawnSync } from 'child_process'
-
-// ─── State ───────────────────────────────────────────────────────────
-
-let recordingProcess: ChildProcess | null = null
-let availabilityCache: boolean | null = null
-
-// ─── Helpers ─────────────────────────────────────────────────────────
-
-function commandExists(cmd: string): boolean {
-  const result = spawnSync(cmd, ['--version'], {
-    stdio: 'ignore',
-    timeout: 3000,
-  })
-  return result.error === undefined
+type AudioCaptureNapi = {
+  startRecording(
+    onData: (data: Buffer) => void,
+    onEnd: () => void,
+  ): boolean
+  stopRecording(): void
+  isRecording(): boolean
+  startPlayback(sampleRate: number, channels: number): boolean
+  writePlaybackData(data: Buffer): void
+  stopPlayback(): void
+  isPlaying(): boolean
+  // TCC microphone authorization status (macOS only):
+  // 0 = notDetermined, 1 = restricted, 2 = denied, 3 = authorized.
+  // Linux: always returns 3 (authorized) — no system-level microphone permission API.
+  // Windows: returns 3 (authorized) if registry key absent or allowed,
+  //          2 (denied) if microphone access is explicitly denied.
+  microphoneAuthorizationStatus?(): number
 }
 
-// ─── Public API ──────────────────────────────────────────────────────
+let cachedModule: AudioCaptureNapi | null = null
+let loadAttempted = false
 
-/**
- * Check whether a supported audio recording command is available.
- * Returns true if `rec` (SoX) is found on macOS, or `arecord` (ALSA) on Linux.
- * Windows is not supported and always returns false.
- */
-export function isNativeAudioAvailable(): boolean {
-  if (availabilityCache !== null) {
-    return availabilityCache
+function loadModule(): AudioCaptureNapi | null {
+  if (loadAttempted) {
+    return cachedModule
+  }
+  loadAttempted = true
+
+  // Supported platforms: macOS (darwin), Linux, Windows (win32)
+  const platform = process.platform
+  if (platform !== 'darwin' && platform !== 'linux' && platform !== 'win32') {
+    return null
   }
 
-  if (process.platform === 'win32') {
-    availabilityCache = false
-    return false
-  }
-
-  if (process.platform === 'darwin') {
-    // macOS: use SoX rec
-    availabilityCache = commandExists('rec')
-    return availabilityCache
-  }
-
-  if (process.platform === 'linux') {
-    // Linux: prefer arecord, fall back to rec
-    availabilityCache = commandExists('arecord') || commandExists('rec')
-    return availabilityCache
-  }
-
-  availabilityCache = false
-  return false
-}
-
-/**
- * Check whether a recording is currently in progress.
- */
-export function isNativeRecordingActive(): boolean {
-  return recordingProcess !== null && !recordingProcess.killed
-}
-
-/**
- * Stop the active recording process, if any.
- */
-export function stopNativeRecording(): void {
-  if (recordingProcess) {
-    const proc = recordingProcess
-    recordingProcess = null
-    if (!proc.killed) {
-      proc.kill('SIGTERM')
+  // Candidate 1: native-embed path (bun compile). AUDIO_CAPTURE_NODE_PATH is
+  // defined at build time in build-with-plugins.ts for native builds only — the
+  // define resolves it to the static literal "../../audio-capture.node" so bun
+  // compile can rewrite it to /$bunfs/root/audio-capture.node. MUST stay a
+  // direct require(env var) — bun cannot analyze require(variable) from a loop.
+  if (process.env.AUDIO_CAPTURE_NODE_PATH) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      cachedModule = require(
+        process.env.AUDIO_CAPTURE_NODE_PATH,
+      ) as AudioCaptureNapi
+      return cachedModule
+    } catch {
+      // fall through to runtime fallbacks below
     }
   }
+
+  // Candidates 2-4: npm-install, dev/source, and workspace layouts.
+  // In bundled output, require() resolves relative to cli.js at the package root.
+  // In dev, it resolves relative to this file. When loaded from a workspace
+  // package (packages/audio-capture-napi/src/), we need an absolute path fallback.
+  const platformDir = `${process.arch}-${platform}`
+  const fallbacks = [
+    `./vendor/audio-capture/${platformDir}/audio-capture.node`,
+    `../audio-capture/${platformDir}/audio-capture.node`,
+    `${process.cwd()}/vendor/audio-capture/${platformDir}/audio-capture.node`,
+  ]
+  for (const p of fallbacks) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      cachedModule = require(p) as AudioCaptureNapi
+      return cachedModule
+    } catch {
+      // try next
+    }
+  }
+  return null
 }
 
-/**
- * Start recording audio. Raw PCM data (16kHz, 16-bit signed, mono) is
- * streamed via the onData callback. onEnd is called when recording stops
- * (either from silence detection or process termination).
- *
- * Returns true if recording started successfully, false otherwise.
- */
+export function isNativeAudioAvailable(): boolean {
+  return loadModule() !== null
+}
+
 export function startNativeRecording(
   onData: (data: Buffer) => void,
   onEnd: () => void,
 ): boolean {
-  // Don't start if already recording
-  if (isNativeRecordingActive()) {
-    stopNativeRecording()
-  }
-
-  if (!isNativeAudioAvailable()) {
+  const mod = loadModule()
+  if (!mod) {
     return false
   }
+  return mod.startRecording(onData, onEnd)
+}
 
-  let child: ChildProcess
+export function stopNativeRecording(): void {
+  const mod = loadModule()
+  if (!mod) {
+    return
+  }
+  mod.stopRecording()
+}
 
-  if (process.platform === 'darwin' || (process.platform === 'linux' && commandExists('rec'))) {
-    // Use SoX rec: output raw PCM 16kHz 16-bit signed mono to stdout
-    child = spawn(
-      'rec',
-      [
-        '-q',           // quiet
-        '--buffer',
-        '1024',         // small buffer for low latency
-        '-t', 'raw',    // raw PCM output
-        '-r', '16000',  // 16kHz sample rate
-        '-e', 'signed', // signed integer encoding
-        '-b', '16',     // 16-bit
-        '-c', '1',      // mono
-        '-',            // output to stdout
-      ],
-      { stdio: ['pipe', 'pipe', 'pipe'] },
-    )
-  } else if (process.platform === 'linux' && commandExists('arecord')) {
-    // Use arecord: output raw PCM 16kHz 16-bit signed LE mono to stdout
-    child = spawn(
-      'arecord',
-      [
-        '-f', 'S16_LE', // signed 16-bit little-endian
-        '-r', '16000',  // 16kHz sample rate
-        '-c', '1',      // mono
-        '-t', 'raw',    // raw PCM, no header
-        '-q',           // quiet
-        '-',            // output to stdout
-      ],
-      { stdio: ['pipe', 'pipe', 'pipe'] },
-    )
-  } else {
+export function isNativeRecordingActive(): boolean {
+  const mod = loadModule()
+  if (!mod) {
     return false
   }
+  return mod.isRecording()
+}
 
-  recordingProcess = child
+export function startNativePlayback(
+  sampleRate: number,
+  channels: number,
+): boolean {
+  const mod = loadModule()
+  if (!mod) {
+    return false
+  }
+  return mod.startPlayback(sampleRate, channels)
+}
 
-  child.stdout?.on('data', (chunk: Buffer) => {
-    onData(chunk)
-  })
+export function writeNativePlaybackData(data: Buffer): void {
+  const mod = loadModule()
+  if (!mod) {
+    return
+  }
+  mod.writePlaybackData(data)
+}
 
-  // Consume stderr to prevent backpressure
-  child.stderr?.on('data', () => {})
+export function stopNativePlayback(): void {
+  const mod = loadModule()
+  if (!mod) {
+    return
+  }
+  mod.stopPlayback()
+}
 
-  child.on('close', () => {
-    recordingProcess = null
-    onEnd()
-  })
+export function isNativePlaying(): boolean {
+  const mod = loadModule()
+  if (!mod) {
+    return false
+  }
+  return mod.isPlaying()
+}
 
-  child.on('error', () => {
-    recordingProcess = null
-    onEnd()
-  })
-
-  return true
+// Returns the microphone authorization status.
+// On macOS, returns the TCC status: 0=notDetermined, 1=restricted, 2=denied, 3=authorized.
+// On Linux, always returns 3 (authorized) — no system-level mic permission API.
+// On Windows, returns 3 (authorized) if registry key absent or allowed, 2 (denied) if explicitly denied.
+// Returns 0 (notDetermined) if the native module is unavailable.
+export function microphoneAuthorizationStatus(): number {
+  const mod = loadModule()
+  if (!mod || !mod.microphoneAuthorizationStatus) {
+    return 0
+  }
+  return mod.microphoneAuthorizationStatus()
 }

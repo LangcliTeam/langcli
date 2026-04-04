@@ -43,7 +43,7 @@ tests/
 
 ## 4. 当前覆盖状态
 
-> 更新日期：2026-04-02 | **1297 tests, 68 files, 0 fail, 980ms**
+> 更新日期：2026-04-02 | **1623 tests, 84 files, 0 fail, 851ms**
 
 ### 4.1 可靠度评分
 
@@ -64,7 +64,7 @@ tests/
 | `src/__tests__/Tool.test.ts` | 20 | GOOD | buildTool, toolMatchesName, findToolByName, filterToolProgressMessages | — |
 | `src/__tests__/tools.test.ts` | 9 | ACCEPTABLE | parseToolPreset, filterToolsByDenyRules | 预设覆盖仅测 "default"；有冗余用例 |
 | `src/tools/FileEditTool/__tests__/utils.test.ts` | 22 | ACCEPTABLE | normalizeQuotes, applyEditToFile, preserveQuoteStyle | `findActualString` 断言过弱（`not.toBeNull`）；`preserveQuoteStyle` 仅 2 用例 |
-| `src/tools/shared/__tests__/gitOperationTracking.test.ts` | 14 | WEAK | parseGitCommitId, detectGitOperation | **未 mock analytics 依赖**，测试产生副作用；6 个 GH PR action 仅测 2 个 |
+| `src/tools/shared/__tests__/gitOperationTracking.test.ts` | 20 | ACCEPTABLE | parseGitCommitId, detectGitOperation | 6 个 GH PR action 全覆盖；缺 `trackGitOperations` 测试（需 mock analytics） |
 | `src/tools/BashTool/__tests__/destructiveCommandWarning.test.ts` | 21 | ACCEPTABLE | git/rm/SQL/k8s/terraform 危险模式 | safe commands 4 断言合一；缺少 `rm -rf /`、`DROP DATABASE`、管道命令 |
 | `src/tools/BashTool/__tests__/commandSemantics.test.ts` | 10 | ACCEPTABLE | grep/diff/test/rg/find 退出码语义 | mock `splitCommand_DEPRECATED` 与实现可能分歧；覆盖可更全面 |
 
@@ -79,7 +79,7 @@ tests/
 | `utils/__tests__/stringUtils.test.ts` | 30 | GOOD | 10 个函数全覆盖，含 Unicode 边界 | — |
 | `utils/__tests__/semver.test.ts` | 16 | ACCEPTABLE | gt/gte/lt/lte/satisfies/order | 缺 pre-release、tilde range、畸形版本串 |
 | `utils/__tests__/uuid.test.ts` | 6 | ACCEPTABLE | validateUuid | 大写测试仅 `not.toBeNull`，未验证标准化输出 |
-| `utils/__tests__/format.test.ts` | 20 | WEAK | formatFileSize, formatDuration, formatNumber 等 | **多处 `toContain` 应为 `toBe`**：formatNumber/formatTokens/formatRelativeTime 仅检查子串 |
+| `utils/__tests__/format.test.ts` | 27 | GOOD | formatFileSize, formatDuration, formatNumber, formatTokens, formatRelativeTime | 全部 `toBe` 精确匹配，含 billions/weeks/days 边界 |
 | `utils/__tests__/frontmatterParser.test.ts` | 22 | GOOD | parseFrontmatter, splitPathInFrontmatter, parsePositiveIntFromFrontmatter | — |
 | `utils/__tests__/file.test.ts` | 13 | ACCEPTABLE | convertLeadingTabsToSpaces, addLineNumbers, stripLineNumberPrefix | `addLineNumbers` 仅 `toContain`；缺 Windows 路径分隔符测试 |
 | `utils/__tests__/glob.test.ts` | 6 | ACCEPTABLE | extractGlobBaseDirectory | 缺绝对路径、根 `/`、Windows 路径 |
@@ -88,13 +88,21 @@ tests/
 | `utils/__tests__/truncate.test.ts` | 18 | ACCEPTABLE | truncateToWidth, wrapText, truncatePathMiddle | **缺 CJK/emoji/wide-char 测试**（这是宽度感知实现的核心场景） |
 | `utils/__tests__/path.test.ts` | 15 | ACCEPTABLE | containsPathTraversal, normalizePathForConfigKey | 仅覆盖 2/5+ 导出函数 |
 | `utils/__tests__/tokens.test.ts` | 18 | GOOD | getTokenCountFromUsage, doesMostRecentAssistantMessageExceed200k 等 | — |
+| `utils/__tests__/stream.test.ts` | 15 | GOOD | Stream\<T\> enqueue/read/drain/next/done/error/for-await | — |
+| `utils/__tests__/abortController.test.ts` | 13 | GOOD | createAbortController/createChildAbortController 父子传播 | — |
+| `utils/__tests__/bufferedWriter.test.ts` | 10 | GOOD | createBufferedWriter 立即/缓冲/flush/overflow | — |
+| `utils/__tests__/gitDiff.test.ts` | 25 | GOOD | parseGitNumstat/parseGitDiff/parseShortstat 纯解析 | — |
+| `utils/__tests__/sliceAnsi.test.ts` | 13 | GOOD | sliceAnsi ANSI 感知切片 + undoAnsiCodes | — |
+| `utils/__tests__/treeify.test.ts` | 13 | ACCEPTABLE | treeify 扁平/嵌套/循环引用 | 缺深度嵌套性能测试 |
+| `utils/__tests__/words.test.ts` | 11 | GOOD | slug 格式 (adjective-verb-noun)、唯一性 | — |
 
-**Context 构建（2 文件）：**
+**Context 构建（3 文件）：**
 
 | 文件 | Tests | 评分 | 覆盖范围 | 主要不足 |
 |------|-------|------|----------|----------|
 | `utils/__tests__/claudemd.test.ts` | 14 | ACCEPTABLE | stripHtmlComments, isMemoryFilePath, getLargeMemoryFiles | **仅测 3 个辅助函数**，核心发现/加载/`@include` 指令/memoization 未覆盖 |
 | `utils/__tests__/systemPrompt.test.ts` | 8 | GOOD | buildEffectiveSystemPrompt | — |
+| `__tests__/history.test.ts` | 26 | GOOD | parseReferences/expandPastedTextRefs/formatPastedTextRef 等 5 个函数 | — |
 
 #### P1 — 重要模块
 
@@ -103,12 +111,25 @@ tests/
 | `permissions/__tests__/permissionRuleParser.test.ts` | 16 | GOOD | escape/unescape 规则，roundtrip 完整性 | — |
 | `permissions/__tests__/permissions.test.ts` | 12 | ACCEPTABLE | getDenyRuleForTool, getAskRuleForTool, filterDeniedAgents | `as any` cast；缺 MCP tool deny 测试 |
 | `permissions/__tests__/shellRuleMatching.test.ts` | 19 | GOOD | 通配符、转义、正则特殊字符 | — |
-| `permissions/__tests__/PermissionMode.test.ts` | 18 | WEAK | permissionModeFromString, isExternalPermissionMode 等 | **`isExternalPermissionMode` false 路径从未执行**；mode 覆盖不完整（5 选 3） |
+| `permissions/__tests__/PermissionMode.test.ts` | 22 | ACCEPTABLE | permissionModeFromString, isExternalPermissionMode 等 | isExternalPermissionMode ant false 路径已覆盖；缺 `bubble` 模式独立测试 |
 | `permissions/__tests__/dangerousPatterns.test.ts` | 7 | WEAK | CROSS_PLATFORM_CODE_EXEC, DANGEROUS_BASH_PATTERNS | 纯数据 smoke test，无行为测试；不验证数组无重复 |
 | `model/__tests__/aliases.test.ts` | 15 | ACCEPTABLE | isModelAlias, isModelFamilyAlias | 缺 null/undefined/空串输入 |
 | `model/__tests__/model.test.ts` | 13 | ACCEPTABLE | firstPartyNameToCanonical | 缺空串、非标准日期后缀 |
 | `model/__tests__/providers.test.ts` | 9 | ACCEPTABLE | getAPIProvider, isFirstPartyAnthropicBaseUrl | `originalEnv` 声明未使用；env 恢复不完整 |
 | `utils/__tests__/messages.test.ts` | 36 | GOOD | createAssistantMessage, createUserMessage, extractTag 等 16 个 describe | `normalizeMessages` 仅检查长度未验证内容 |
+
+**Tool 子模块（8 文件）：**
+
+| 文件 | Tests | 评分 | 覆盖范围 | 主要不足 |
+|------|-------|------|----------|----------|
+| `tools/PowerShellTool/__tests__/powershellSecurity.test.ts` | 24 | GOOD | AST 安全检测：Invoke-Expression/iex/encoded/dynamic/download/COM | — |
+| `tools/PowerShellTool/__tests__/commandSemantics.test.ts` | 21 | GOOD | grep/rg/findstr/robocopy 退出码、pipeline last-segment | — |
+| `tools/PowerShellTool/__tests__/destructiveCommandWarning.test.ts` | 38 | GOOD | Remove-Item/Format-Volume/Clear-Disk/git/SQL/COMPUTER/alias 全覆盖 | — |
+| `tools/PowerShellTool/__tests__/gitSafety.test.ts` | 29 | GOOD | .git 路径检测/NTFS 短名/反斜杠/引号/反引号转义 | — |
+| `tools/LSPTool/__tests__/formatters.test.ts` | 18 | GOOD | 全部 8 个 format 函数 null/empty/valid 输入 | — |
+| `tools/LSPTool/__tests__/schemas.test.ts` | 13 | GOOD | isValidLSPOperation 类型守卫 9 种操作 + 无效/空/大小写 | — |
+| `tools/WebFetchTool/__tests__/preapproved.test.ts` | 18 | GOOD | isPreapprovedHost 精确/路径作用域/子路径/大小写/子域名 | — |
+| `tools/WebFetchTool/__tests__/urlValidation.test.ts` | 18 | GOOD | validateURL/isPermittedRedirect 本地重实现（避免重依赖链） | — |
 
 #### P2 — 补充模块
 
@@ -146,7 +167,7 @@ tests/
 | `utils/__tests__/slashCommandParsing.test.ts` | 8 | GOOD | — |
 | `utils/__tests__/groupToolUses.test.ts` | 10 | GOOD | — |
 | `utils/__tests__/shell/__tests__/outputLimits.test.ts` | 7 | ACCEPTABLE | — |
-| `utils/__tests__/envValidation.test.ts` | 9 | ACCEPTABLE | **可能存在 bug**：lower bound=100 但 value=1 报 valid |
+| `utils/__tests__/envValidation.test.ts` | 12 | GOOD | validateBoundedIntEnvVar | value=1 无下界确认为设计意图（函数仅校验 >0 和 <=upperLimit） |
 | `utils/git/__tests__/gitConfigParser.test.ts` | 20 | GOOD | — |
 | `services/mcp/__tests__/mcpStringUtils.test.ts` | 16 | GOOD | — |
 | `services/mcp/__tests__/normalization.test.ts` | 10 | GOOD | — |
@@ -155,9 +176,9 @@ tests/
 
 | 等级 | 文件数 | 占比 |
 |------|--------|------|
-| **GOOD** | 30 | 47% |
-| **ACCEPTABLE** | 26 | 41% |
-| **WEAK** | 8 | 12% |
+| **GOOD** | 46 | 55% |
+| **ACCEPTABLE** | 32 | 38% |
+| **WEAK** | 6 | 7% |
 
 ## 5. 系统性问题
 
@@ -167,7 +188,6 @@ tests/
 
 | 文件 | 受影响函数 | 建议 |
 |------|-----------|------|
-| `format.test.ts` | formatNumber, formatTokens, formatRelativeTime | 改为 `toBe` 精确匹配 |
 | `file.test.ts` | addLineNumbers | 断言完整输出格式 |
 | `diff.test.ts` | getPatchFromContents | 验证 hunk 内容正确性 |
 | `notebook.test.ts` | mapNotebookCellsToToolResult | 验证合并后内容 |
@@ -189,15 +209,14 @@ Spec 定义的三个集成测试均未创建：
 
 | 问题 | 影响文件 | 说明 |
 |------|----------|------|
-| 未 mock 重依赖 | `gitOperationTracking.test.ts` | `detectGitOperation` 内部调用 analytics，测试产生副作用 |
-| `isExternalPermissionMode` 永远 true | `PermissionMode.test.ts` | false 路径从未被执行，测试形同虚设 |
+| 未 mock 重依赖 | `gitOperationTracking.test.ts` | `trackGitOperations` 调用 analytics/bootstrap，测试仅覆盖 `detectGitOperation`（无副作用） |
 | env 恢复不完整 | `providers.test.ts` | 仅删除已知 key，新增 env var 会导致测试泄漏 |
 
 ### 5.4 潜在 Bug
 
 | 文件 | 函数 | 问题 |
 |------|------|------|
-| `envValidation.test.ts` | validateBoundedIntEnvVar | 测试断言 lower bound=100 时 value=1 返回 `status: "valid"`，与函数名语义矛盾，可能是源码 bug 或测试逻辑错误 |
+| ~~`envValidation.test.ts`~~ | ~~validateBoundedIntEnvVar~~ | ~~value=1 无下界检查~~ — **已确认**：函数仅校验 `parsed > 0` 和 `parsed <= upperLimit`，不强制 `parsed >= defaultValue`，为设计意图 |
 
 ### 5.5 已知限制
 
@@ -225,12 +244,17 @@ Spec 定义的三个集成测试均未创建：
 | `src/utils/settings/settings.js` | effort |
 | `src/utils/auth.js` | effort |
 | `src/services/analytics/growthbook.js` | effort, tokenBudget |
+| `src/utils/powershell/dangerousCmdlets.js` | powershellSecurity |
+| `src/utils/cwd.js` | gitSafety |
+| `src/utils/powershell/parser.js` | gitSafety |
+| `src/utils/stringUtils.js` | LSP formatters |
+| `figures` | treeify |
 
 **约束**：`mock.module()` 必须在每个测试文件内联调用，不能从共享 helper 导入。
 
 ## 6. 完成状态
 
-> 更新日期：2026-04-02 | **1297 tests, 68 files, 0 fail, 980ms**
+> 更新日期：2026-04-02 | **1623 tests, 84 files, 0 fail, 851ms**
 
 ### 已完成
 
@@ -242,16 +266,19 @@ Spec 定义的三个集成测试均未创建：
 | Plan 11 — ACCEPTABLE 加强 | **已完成** | +62 | diff/uuid/hash/semver/path/claudemd/fileEdit/providers/messages 等 15 文件 |
 | Plan 14 — 集成测试 | **已完成** | +43 | 搭建 tests/mocks/ + tool-chain/context-build/message-pipeline/cli-arguments |
 | Plan 15 — CLI + 覆盖率 | **已完成** | +11 | Commander.js 参数解析、覆盖率基线 |
+| Phase 16 — 零依赖纯函数 | **已完成** | +126 | stream/abortController/bufferedWriter/gitDiff/history/sliceAnsi/treeify/words 8 文件 |
+| Phase 17 — 工具子模块 | **已完成** | +179 | PowerShell 安全/语义/破坏性/gitSafety + LSP 格式化/schema + WebFetch 预批准/URL 8 文件 |
+| Phase 18 — WEAK 修复 | **已完成** | +20 | format 精确匹配、envValidation 边界、PermissionMode 补强、gitOperationTracking PR actions |
 
 ### 覆盖率基线
 
 | 指标 | 数值 |
 |------|------|
-| 总测试数 | 1297 |
-| 测试文件数 | 68 |
+| 总测试数 | 1623 |
+| 测试文件数 | 84 |
 | 失败数 | 0 |
-| 断言数 | 1990 |
-| 运行耗时 | ~1s |
+| 断言数 | 2516 |
+| 运行耗时 | ~851ms |
 | Tool.ts 行覆盖率 | 100% |
 | 整体行覆盖率 | ~33%（Bun coverage 限制：`mock.module` 模式下的模块不报告） |
 

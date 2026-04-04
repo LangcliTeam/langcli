@@ -8,12 +8,12 @@ Foxcli 是一款在终端中使用的交互式 AI 编程助手, 它是基于[Cla
 
 ## 快速开始
 
-### LangRouter api-key准备
+#### LangRouter api-key准备
  去[LangRouter](https://langrouter.ai/)注册一个账号，保存api-key，且确保账户有一定的剩余金额(可充值$2 进行体验)
 
 #### 安装
 ```bash
-npm i foxcli-com -g
+npm i -g foxcli-com
 ```
 
 #### 运行

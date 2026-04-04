@@ -1,11 +1,15 @@
-export const BROWSER_TOOLS: any[] = []
-
-export class ClaudeForChromeContext {}
-
-export class Logger {}
-
-export type PermissionMode = any
-
-export function createClaudeForChromeMcpServer(..._args: any[]): any {
-  return null
-}
+export { BridgeClient, createBridgeClient } from "./bridgeClient.js";
+export { BROWSER_TOOLS } from "./browserTools.js";
+export {
+  createChromeSocketClient,
+  createClaudeForChromeMcpServer,
+} from "./mcpServer.js";
+export { localPlatformLabel } from "./types.js";
+export type {
+  BridgeConfig,
+  ChromeExtensionInfo,
+  ClaudeForChromeContext,
+  Logger,
+  PermissionMode,
+  SocketClient,
+} from "./types.js";

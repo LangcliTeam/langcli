@@ -11,13 +11,13 @@ keywords: ["Ant 特权", "USER_TYPE", "身份门控", "内部功能", "Anthropic
 `USER_TYPE` 是一个构建时常量，通过 Bun 打包器的 `--define` 注入。在 Anthropic 的内部构建中它被设为 `'ant'`，在公开发布的版本中是 `'external'`：
 
 ```typescript
-// 反编译版本（src/entrypoints/cli.tsx 第 16 行）
-(globalThis as any).BUILD_TARGET = "external";
+// 反编译版本（src/types/global.d.ts 第 63 行）
+// Build-time constants BUILD_TARGET/BUILD_ENV/INTERFACE_TYPE — removed (zero runtime usage)
 ```
 
-由于这是编译时常量，Bun 会进行**常量折叠**——所有 `process.env.USER_TYPE === 'ant'` 在外部构建中直接变为 `false`，后续代码被 DCE 移除。但在反编译版本中，这些代码保留完整。
+`BUILD_TARGET` 等构建时常量在反编译版本中已被移除。`USER_TYPE` 通过 Bun 的 `--define` 或环境变量注入，Bun 会进行**常量折叠**——所有 `process.env.USER_TYPE === 'ant'` 在外部构建中直接变为 `false`，后续代码被 DCE 移除。但在反编译版本中，这些代码保留完整。
 
-`USER_TYPE === 'ant'` 出现在代码库的 **60+ 个位置**，控制着工具、命令、API、UI 等方方面面。
+`USER_TYPE === 'ant'` 在代码库中出现 **377+ 次**（含 `=== 'ant'` 291 次、`(process.env.USER_TYPE) === 'ant'` 86 次），另有 `!== 'ant'` 53 次、其他引用约 35 次，总计 **465 处引用**，控制着工具、命令、API、UI 等方方面面。
 
 ## Ant-Only 工具
 
@@ -31,7 +31,9 @@ keywords: ["Ant 特权", "USER_TYPE", "身份门控", "内部功能", "Anthropic
 | **TungstenTool** | `src/tools/TungstenTool/` | 基于 tmux 的终端面板工具（反编译版中已 stub） |
 
 ```typescript
-// src/tools.ts 第 16-24 行
+// src/tools.ts 第 14-24 行——条件导入 + Dead Code Elimination 标记
+// Dead code elimination: conditional import for ant-only tools
+/* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const REPLTool =
   process.env.USER_TYPE === 'ant'
     ? require('./tools/REPLTool/REPLTool.js').REPLTool
@@ -45,7 +47,7 @@ const SuggestBackgroundPRTool =
 
 ## Ant-Only 命令
 
-`src/commands.ts` 注册了 25+ 个仅在内部构建中可用的斜杠命令：
+`src/commands.ts` 注册了 **28** 个仅在内部构建中可用的斜杠命令（`INTERNAL_ONLY_COMMANDS`，lines 225-254），在 `USER_TYPE === 'ant' && !IS_DEMO` 时才加载（line 343-345）：
 
 <AccordionGroup>
   <Accordion title="调试类">
@@ -55,6 +57,7 @@ const SuggestBackgroundPRTool =
     - `env` — 显示环境变量
     - `mockLimits` — 模拟速率限制
     - `resetLimits` — 重置速率限制
+    - `resetLimitsNonInteractive` — 重置速率限制（非交互式）
   </Accordion>
   <Accordion title="实验类">
     - `bughunter` — Bug 猎人模式
@@ -69,6 +72,9 @@ const SuggestBackgroundPRTool =
     - `autofixPr` — 自动修复 PR 中的问题
     - `share` — 分享会话
     - `summary` — 生成摘要
+    - `subscribePr` — 订阅 PR（需要 `KAIROS_GITHUB_WEBHOOKS` feature flag）
+    - `forceSnip` — 强制截断历史（需要 `HISTORY_SNIP` feature flag）
+    - `ultraplan` — 超级规划（需要 `ULTRAPLAN` feature flag）
   </Accordion>
   <Accordion title="基础设施类">
     - `backfillSessions` — 回填会话数据
@@ -88,30 +94,72 @@ const SuggestBackgroundPRTool =
 
 ## Beta API Headers
 
-Claude Code 向 API 发送的 beta headers 也分为公开和内部两类：
+Claude Code 向 API 发送的 beta headers 分布在 `src/constants/betas.ts`（主注册表）和其他文件中，按可见性分为以下几类：
 
-| Header | 功能 | 可见性 |
-|--------|------|--------|
-| `claude-code-20250219` | Claude Code 标识 | 公开 |
-| `interleaved-thinking-2025-05-14` | 交错思考模式 | 公开 |
-| `context-1m-2025-08-07` | 1M 上下文窗口 | 公开 |
-| `context-management-2025-06-27` | 上下文管理 | 公开 |
-| `web-search-2025-03-05` | 网页搜索 | 公开 |
-| `effort-2025-11-24` | 推理强度控制 | 公开 |
-| `fast-mode-2026-02-01` | 快速模式 | 公开 |
-| `token-efficient-tools-2026-03-28` | Token 高效工具 | 公开 |
-| `advisor-tool-2026-03-01` | 顾问工具 | 公开 |
-| **`cli-internal-2026-02-09`** | 内部 CLI 功能 | **Ant-Only** |
-| **`afk-mode-2026-01-31`** | AFK 模式（离开键盘自动审批） | **Feature Flag** |
-| **`summarize-connector-text-2026-03-13`** | 连接器文本摘要 | **Feature Flag** |
+### 公开 Headers（所有构建均发送）
+
+| Header | 功能 | 额外条件 |
+|--------|------|----------|
+| `claude-code-20250219` | Claude Code 标识 | 非 Haiku 时始终发送；Haiku 在 agentic 模式下也发送 |
+| `effort-2025-11-24` | 推理强度控制 | 动态注入 |
+| `task-budgets-2026-03-13` | 任务预算 | 始终通过 `addAgenticBetas()` 注入 |
+| `fast-mode-2026-02-01` | 快速模式 | 通过 sticky-on latch 动态注入 |
+| `advisor-tool-2026-03-01` | 顾问工具 | 启用 advisor 时动态注入 |
+| `advanced-tool-use-2025-11-20` | 工具搜索（1P） | Claude API / Foundry |
+| `tool-search-tool-2025-10-19` | 工具搜索（3P） | Vertex / Bedrock |
+
+### 模型能力相关（有条件发送）
+
+| Header | 功能 | 条件 |
+|--------|------|------|
+| `interleaved-thinking-2025-05-14` | 交错思考模式 | 模型支持 ISP 且未禁用 |
+| `context-1m-2025-08-07` | 1M 上下文窗口 | 模型支持 1M context |
+| `context-management-2025-06-27` | 上下文管理 | Claude 4+ 或 ant 手动启用 |
+| `structured-outputs-2025-12-15` | 结构化输出 | Claude 4.5/4.6 + GrowthBook `tengu_tool_pear` |
+| `web-search-2025-03-05` | 网页搜索 | Vertex (Claude 4+) / Foundry |
+| `redact-thinking-2026-02-12` | 思维摘要/脱敏 | ISP 模型 + 非交互 + 未强制显示思维 |
+| `prompt-caching-scope-2026-01-05` | 提示缓存作用域 | firstParty/foundry + 全局缓存 |
+
+### Ant-Only Headers
+
+| Header | 功能 | 条件 |
+|--------|------|------|
+| **`cli-internal-2026-02-09`** | 内部 CLI 功能 | `USER_TYPE === 'ant'` + CLI 入口 |
+| **`token-efficient-tools-2026-03-28`** | Token 高效工具 | `USER_TYPE === 'ant'` + GrowthBook `tengu_amber_json_tools` |
+
+### Feature Flag Gated
+
+| Header | 功能 | 条件 |
+|--------|------|------|
+| **`afk-mode-2026-01-31`** | AFK 模式（离开键盘自动审批） | `feature('TRANSCRIPT_CLASSIFIER')` |
+
+### 其他特殊 Headers
+
+| Header | 功能 | 来源 |
+|--------|------|------|
+| `oauth-2025-04-20` | OAuth 订阅者标识 | `src/constants/oauth.ts`，Pro/Max/Team/Enterprise |
+| `environments-2025-11-01` | Bridge 环境 API | `src/bridge/bridgeApi.ts`，仅 Bridge 模式 |
 
 ```typescript
-// src/constants/betas.ts 第 29-30 行
+// src/constants/betas.ts — 常量定义
+export const TOKEN_EFFICIENT_TOOLS_BETA_HEADER =
+  'token-efficient-tools-2026-03-28'
 export const CLI_INTERNAL_BETA_HEADER =
   process.env.USER_TYPE === 'ant' ? 'cli-internal-2026-02-09' : ''
 ```
 
-`cli-internal` header 意味着 Anthropic 的 API 服务端也维护着一套 ant-only 的服务端行为——这不仅仅是客户端的门控。
+```typescript
+// src/utils/betas.ts 第 315-321 行——TOKEN_EFFICIENT_TOOLS 的实际门控逻辑
+if (
+  process.env.USER_TYPE === 'ant' &&
+  includeFirstPartyOnlyBetas &&
+  tokenEfficientToolsEnabled  // GrowthBook 'tengu_amber_json_tools' flag
+) {
+  betaHeaders.push(TOKEN_EFFICIENT_TOOLS_BETA_HEADER)
+}
+```
+
+`cli-internal` header 意味着 Anthropic 的 API 服务端也维护着一套 ant-only 的服务端行为——这不仅仅是客户端的门控。`token-efficient-tools` 进一步需要 GrowthBook flag 开启，说明 Ant 员工内部也有分层灰度。
 
 ## 内部代号体系
 
@@ -138,6 +186,8 @@ Anthropic 有浓厚的"动物命名"文化：
     - `DISABLE_AUTO_COMPACT` — 禁用自动压缩
     - `CLAUDE_CODE_DISABLE_AUTO_MEMORY` — 禁用自动记忆
     - `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` — 禁用后台任务
+    - `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` — 禁用实验性 beta headers
+    - `USE_API_CONTEXT_MANAGEMENT` — 上下文管理工具清除（需 ant）
   </Accordion>
   <Accordion title="功能启用开关">
     - `CLAUDE_CODE_VERIFY_PLAN` — 启用 VerifyPlanExecutionTool
@@ -151,6 +201,7 @@ Anthropic 有浓厚的"动物命名"文化：
     - `CLAUDE_CODE_COORDINATOR_MODE` — 启用 Coordinator 模式
     - `CLAUDE_INTERNAL_FC_OVERRIDES` — GrowthBook flag 覆盖（ant-only）
     - `IS_DEMO` — 演示模式（隐藏内部命令和敏感信息）
+    - `CLAUDE_CODE_ENTRYPOINT` — 入口类型标识（`cli` | 其他）
   </Accordion>
 </AccordionGroup>
 

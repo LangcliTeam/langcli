@@ -1,32 +1,43 @@
 /**
- * Sentinel apps — 需要特殊权限警告的应用列表
+ * Bundle IDs that are escalations-in-disguise. The approval UI shows a warning
+ * badge for these; they are NOT blocked. Power users may legitimately want the
+ * model controlling a terminal.
  *
- * 包含终端、文件管理器、系统设置等敏感应用。
- * Computer Use 操作这些应用时会显示额外警告。
+ * Imported by the renderer via the `./sentinelApps` subpath (package.json
+ * `exports`), which keeps Next.js from reaching index.ts → mcpServer.ts →
+ * @modelcontextprotocol/sdk (devDep, would fail module resolution). Keep
+ * this file import-free so the subpath stays clean.
  */
 
-type SentinelCategory = 'shell' | 'filesystem' | 'system_settings'
+/** These apps can execute arbitrary shell commands. */
+const SHELL_ACCESS_BUNDLE_IDS = new Set([
+  "com.apple.Terminal",
+  "com.googlecode.iterm2",
+  "com.microsoft.VSCode",
+  "dev.warp.Warp-Stable",
+  "com.github.wez.wezterm",
+  "io.alacritty",
+  "net.kovidgoyal.kitty",
+  "com.jetbrains.intellij",
+  "com.jetbrains.pycharm",
+]);
 
-const SENTINEL_MAP: Record<string, SentinelCategory> = {
-  // Shell / Terminal
-  'com.apple.Terminal': 'shell',
-  'com.googlecode.iterm2': 'shell',
-  'dev.warp.Warp-Stable': 'shell',
-  'io.alacritty': 'shell',
-  'com.github.wez.wezterm': 'shell',
-  'net.kovidgoyal.kitty': 'shell',
-  'co.zeit.hyper': 'shell',
+/** Finder in the allowlist ≈ browse + open-any-file. */
+const FILESYSTEM_ACCESS_BUNDLE_IDS = new Set(["com.apple.finder"]);
 
-  // Filesystem
-  'com.apple.finder': 'filesystem',
+const SYSTEM_SETTINGS_BUNDLE_IDS = new Set(["com.apple.systempreferences"]);
 
-  // System Settings
-  'com.apple.systempreferences': 'system_settings',
-  'com.apple.SystemPreferences': 'system_settings',
-}
+export const SENTINEL_BUNDLE_IDS: ReadonlySet<string> = new Set([
+  ...SHELL_ACCESS_BUNDLE_IDS,
+  ...FILESYSTEM_ACCESS_BUNDLE_IDS,
+  ...SYSTEM_SETTINGS_BUNDLE_IDS,
+]);
 
-export const sentinelApps: string[] = Object.keys(SENTINEL_MAP)
+export type SentinelCategory = "shell" | "filesystem" | "system_settings";
 
 export function getSentinelCategory(bundleId: string): SentinelCategory | null {
-  return SENTINEL_MAP[bundleId] ?? null
+  if (SHELL_ACCESS_BUNDLE_IDS.has(bundleId)) return "shell";
+  if (FILESYSTEM_ACCESS_BUNDLE_IDS.has(bundleId)) return "filesystem";
+  if (SYSTEM_SETTINGS_BUNDLE_IDS.has(bundleId)) return "system_settings";
+  return null;
 }

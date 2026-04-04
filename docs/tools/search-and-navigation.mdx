@@ -139,10 +139,136 @@ function getDeferredToolsCacheKey(deferredTools: Tools): string {
 
 AI 的信息获取不局限于本地代码：
 
-- **WebSearch**：搜索互联网获取最新信息
-- **WebFetch**：抓取特定网页内容，转换为 Markdown 供 AI 阅读
+- **WebSearch**（`src/tools/WebSearchTool/`）：调用 Anthropic API 的 `web_search_20250305` server tool 搜索互联网
+- **WebFetch**（`src/tools/WebFetchTool/`）：抓取特定 URL 内容，转换为 Markdown 供 AI 阅读
 
 这让 AI 可以查阅文档、搜索 Stack Overflow、阅读 GitHub issue——和人类开发者的工作方式一致。
+
+### WebSearch 实现机制
+
+WebSearch 通过适配器模式支持两种搜索后端，由 `src/tools/WebSearchTool/adapters/` 中的工厂函数 `createAdapter()` 选择：
+
+```
+适配器架构:
+  WebSearchTool.call()
+    → createAdapter() 选择后端
+      ├─ ApiSearchAdapter — Anthropic API 服务端搜索（需官方 API 密钥）
+      └─ BingSearchAdapter — 直接抓取 Bing 搜索页面解析（无需 API 密钥）
+    → adapter.search(query, options)
+    → 转换为统一 SearchResult[] 格式返回
+```
+
+#### 适配器选择逻辑
+
+`adapters/index.ts` 中的工厂函数按以下优先级选择后端：
+
+| 优先级 | 条件 | 适配器 |
+|--------|------|--------|
+| 1 | 环境变量 `WEB_SEARCH_ADAPTER=api` | `ApiSearchAdapter` |
+| 2 | 环境变量 `WEB_SEARCH_ADAPTER=bing` | `BingSearchAdapter` |
+| 3 | API Base URL 指向 Anthropic 官方 | `ApiSearchAdapter` |
+| 4 | 第三方代理 / 非官方端点 | `BingSearchAdapter` |
+
+适配器是无状态的，同一会话内缓存复用。
+
+#### ApiSearchAdapter — API 服务端搜索
+
+将搜索请求委托给 Anthropic API 的 `web_search_20250305` server tool：
+
+```
+调用链:
+  ApiSearchAdapter.search(query, options)
+    → queryModelWithStreaming() 发起独立的 API 调用
+      → 携带 extraToolSchemas: [BetaWebSearchTool20250305]
+      → API 服务端执行搜索，返回流式事件
+        → server_tool_use / web_search_tool_result / text 交替返回
+    → extractSearchResults() 从 content blocks 提取 SearchResult[]
+```
+
+| 特性 | 实现 |
+|------|------|
+| **模型选择** | Feature flag `tengu_plum_vx3` 控制用 Haiku（强制 tool_choice）还是主模型 |
+| **搜索上限** | 每次调用最多 8 次搜索（`max_uses: 8`） |
+| **域过滤** | 支持 `allowedDomains` / `blockedDomains` |
+| **进度追踪** | 流式解析 `input_json_delta` 提取 query，实时回调 `onProgress` |
+
+#### BingSearchAdapter — Bing 搜索页面解析
+
+直接抓取 Bing 搜索 HTML 并用正则提取结果，无需 API 密钥：
+
+```
+调用链:
+  BingSearchAdapter.search(query, options)
+    → axios.get(bing.com/search?q=...)  — 使用浏览器级别 headers 绕过反爬
+    → extractBingResults(html)
+      → 正则匹配 <li class="b_algo"> 块
+      → 提取 <h2><a> 标题和 URL
+      → resolveBingUrl() 解码 Bing 重定向链接
+      → extractSnippet() 三级降级提取摘要
+    → 客户端域过滤 (allowedDomains / blockedDomains)
+    → 返回 SearchResult[]
+```
+
+**反爬策略**：Bing 对非浏览器 UA 返回需要 JS 渲染的空页面。适配器使用完整的 Edge 浏览器请求头（包含 `Sec-Ch-Ua`、`Sec-Fetch-*` 等现代浏览器标头）确保获得完整 HTML。同时使用 `setmkt=en-US` 参数统一市场定位，避免 Bing 基于用户 IP 做区域化定向（如跳转到德语/新加坡市场导致结果不相关）。
+
+**URL 解码**：Bing 搜索结果中的 URL 为重定向格式（`bing.com/ck/a?...&u=a1aHR0cHM6Ly9...`），`resolveBingUrl()` 从 `u` 参数中 base64 解码出真实目标 URL（`a1` 前缀 = https，`a0` = http）。
+
+**摘要提取**（`extractSnippet()`）按优先级尝试三个来源：
+1. `<p class="b_lineclamp...">` — 带行截断的摘要段落
+2. `<div class="b_caption">` 内的 `<p>` — 普通摘要段落
+3. `<div class="b_caption">` 的直接文本内容 — 兜底方案
+
+| 特性 | 实现 |
+|------|------|
+| **超时** | 30 秒（`FETCH_TIMEOUT_MS`） |
+| **域过滤** | 支持 `allowedDomains` / `blockedDomains`，含子域名匹配 |
+| **进度追踪** | 发送 query_update 和 search_results_received 回调 |
+| **中止支持** | 外部 AbortSignal 传播到 axios 请求 |
+
+### WebSearchTool 统一接口
+
+`WebSearchTool`（`src/tools/WebSearchTool/WebSearchTool.ts`）是面向主循环的工具定义，所有 provider 均可使用（`isEnabled()` 始终返回 true）。它将适配器返回的 `SearchResult[]` 转换为内部 `Output` 格式，`mapToolResultToToolResultBlockParam` 将搜索结果格式化为带 markdown 超链接的文本，并附加 "REMINDER" 要求主模型在回复中包含 Sources。
+
+### WebFetch 实现机制
+
+WebFetch 是一个完整的 HTTP 客户端 + 内容处理管线：
+
+```
+调用链:
+  WebFetchTool.call({ url, prompt })
+    → getURLMarkdownContent(url)
+      → validateURL() — 长度≤2000、无用户名密码、公网域名
+      → URL_CACHE 命中检查（15 分钟 TTL LRU，50MB 上限）
+      → checkDomainBlocklist() — 调用 api.anthropic.com/api/web/domain_info 预检
+      → getWithPermittedRedirects() — axios 请求，自定义重定向处理
+        → HTML → Turndown 转 Markdown（懒加载单例，~1.4MB）
+        → 非 HTML → 原始文本
+        → 二进制（PDF 等）→ persistBinaryContent() 保存到磁盘
+    → applyPromptToMarkdown()
+      → 截断到 100K 字符
+      → queryHaiku() 用小模型按 prompt 提取信息
+    → 返回处理后的结果
+```
+
+安全防护多层设计：
+
+| 层级 | 机制 | 说明 |
+|------|------|------|
+| **域名预检** | `checkDomainBlocklist()` | 调用 `api.anthropic.com/api/web/domain_info?domain=…`，5 分钟缓存 |
+| **重定向控制** | `isPermittedRedirect()` | 仅允许同 host（±www）重定向，跨域重定向返回提示让 AI 重新调用 |
+| **重定向深度** | `MAX_REDIRECTS = 10` | 防止重定向循环无限挂起 |
+| **内容大小** | `MAX_HTTP_CONTENT_LENGTH = 10MB` | 单次响应上限 |
+| **请求超时** | `FETCH_TIMEOUT_MS = 60s` | 主请求超时；域名预检 10s |
+| **URL 验证** | `validateURL()` | 长度、协议、用户名密码、公网域名检查 |
+| **egress 检测** | `X-Proxy-Error: blocked-by-allowlist` | 检测企业代理拦截 |
+
+预批准域名（`src/tools/WebFetchTool/preapproved.ts`）：
+
+用户无需手动授权即可抓取的域名列表，包含 ~90 个主流技术文档站点（MDN、Python docs、React docs、AWS docs 等）。列表分为 hostname-only 和 path-prefix 两类，查找复杂度 O(1)。
+
+对预批准域名，WebFetch 跳过 Haiku 摘要步骤（如果内容是 Markdown 且 < 100K 字符），直接返回原文——因为技术文档本身的结构化程度已经足够好。
+
+权限模型方面，WebFetch 按 hostname 生成 `domain:xxx` 规则匹配用户的 allow/deny/ask 规则，支持用户对特定域名配置永久允许或拒绝。
 
 ### ripgrep 的流式输出
 
