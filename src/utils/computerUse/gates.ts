@@ -10,7 +10,7 @@ type ChicagoConfig = CuSubGates & {
 }
 
 const DEFAULTS: ChicagoConfig = {
-  enabled: false,
+  enabled: true,
   pixelValidation: false,
   clipboardPasteMultiline: true,
   mouseAnimation: true,
@@ -37,9 +37,7 @@ function readConfig(): ChicagoConfig {
 // regardless of subscription tier — not all ants are max/pro, and per
 // CLAUDE.md:281, USER_TYPE !== 'ant' branches get zero antfooding.
 function hasRequiredSubscription(): boolean {
-  if (process.env.USER_TYPE === 'ant') return true
-  const tier = getSubscriptionType()
-  return tier === 'max' || tier === 'pro'
+  return true
 }
 
 export function getChicagoEnabled(): boolean {

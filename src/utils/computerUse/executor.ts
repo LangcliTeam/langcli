@@ -68,6 +68,24 @@ function computeTargetDims(
 }
 
 async function readClipboardViaPbpaste(): Promise<string> {
+  if (process.platform === 'win32') {
+    const { stdout, code } = await execFileNoThrow('powershell', ['-NoProfile', '-Command', 'Get-Clipboard'], {
+      useCwd: false,
+    })
+    if (code !== 0) {
+      throw new Error(`PowerShell Get-Clipboard exited with code ${code}`)
+    }
+    return stdout
+  }
+  if (process.platform === 'linux') {
+    const { stdout, code } = await execFileNoThrow('xclip', ['-selection', 'clipboard', '-o'], {
+      useCwd: false,
+    })
+    if (code !== 0) {
+      throw new Error(`xclip exited with code ${code}`)
+    }
+    return stdout
+  }
   const { stdout, code } = await execFileNoThrow('pbpaste', [], {
     useCwd: false,
   })
@@ -78,6 +96,25 @@ async function readClipboardViaPbpaste(): Promise<string> {
 }
 
 async function writeClipboardViaPbcopy(text: string): Promise<void> {
+  if (process.platform === 'win32') {
+    const { code } = await execFileNoThrow('powershell', ['-NoProfile', '-Command', `Set-Clipboard -Value '${text.replace(/'/g, "''")}'`], {
+      useCwd: false,
+    })
+    if (code !== 0) {
+      throw new Error(`PowerShell Set-Clipboard exited with code ${code}`)
+    }
+    return
+  }
+  if (process.platform === 'linux') {
+    const { code } = await execFileNoThrow('xclip', ['-selection', 'clipboard'], {
+      input: text,
+      useCwd: false,
+    })
+    if (code !== 0) {
+      throw new Error(`xclip exited with code ${code}`)
+    }
+    return
+  }
   const { code } = await execFileNoThrow('pbcopy', [], {
     input: text,
     useCwd: false,
@@ -192,7 +229,7 @@ async function typeViaClipboard(input: Input, text: string): Promise<void> {
     if ((await readClipboardViaPbpaste()) !== text) {
       throw new Error('Clipboard write did not round-trip.')
     }
-    await input.keys(['command', 'v'])
+    await input.keys([process.platform === 'darwin' ? 'command' : 'ctrl', 'v'])
     await sleep(100)
   } finally {
     if (typeof saved === 'string') {
@@ -260,9 +297,9 @@ export function createCliExecutor(opts: {
   getMouseAnimationEnabled: () => boolean
   getHideBeforeActionEnabled: () => boolean
 }): ComputerExecutor {
-  if (process.platform !== 'darwin') {
+  if (process.platform !== 'darwin' && process.platform !== 'win32' && process.platform !== 'linux') {
     throw new Error(
-      `createCliExecutor called on ${process.platform}. Computer control is macOS-only.`,
+      `createCliExecutor called on ${process.platform}. Computer control requires macOS, Windows, or Linux.`,
     )
   }
 
@@ -377,7 +414,7 @@ export function createCliExecutor(opts: {
         d.height,
         d.scaleFactor,
       )
-      return drainRunLoop(() =>
+      const raw = await drainRunLoop(() =>
         cu.resolvePrepareCapture(
           withoutTerminal(opts.allowedBundleIds),
           surrogateHost,
@@ -389,6 +426,14 @@ export function createCliExecutor(opts: {
           opts.doHide,
         ),
       )
+      // Ensure the result has fields expected by toolCalls.ts (hidden, displayId).
+      // macOS native returns these from Swift; our cross-platform ComputerUseAPI
+      // returns {base64, width, height} — fill in the missing fields.
+      return {
+        ...raw,
+        hidden: (raw as any).hidden ?? [],
+        displayId: (raw as any).displayId ?? opts.preferredDisplayId ?? d.displayId,
+      }
     },
 
     /**

@@ -59,6 +59,7 @@ export const releasePump = release
  * concurrent drainRunLoop() calls share one setInterval.
  */
 export async function drainRunLoop<T>(fn: () => Promise<T>): Promise<T> {
+  if (process.platform !== 'darwin') return fn()
   retain()
   let timer: ReturnType<typeof setTimeout> | undefined
   try {

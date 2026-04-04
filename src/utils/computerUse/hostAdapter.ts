@@ -45,9 +45,17 @@ export function getComputerUseHostAdapter(): ComputerUseHostAdapter {
       getHideBeforeActionEnabled: () => getChicagoSubGates().hideBeforeAction,
     }),
     ensureOsPermissions: async () => {
-      const cu = requireComputerUseSwift()
-      const accessibility = (cu as any).tcc.checkAccessibility()
-      const screenRecording = (cu as any).tcc.checkScreenRecording()
+      if (process.platform !== 'darwin') return { granted: true }
+      const cu = requireComputerUseSwift() as any
+      // Native .node module exposes tcc; cross-platform JS backend does not.
+      // When tcc is absent (JS backend on macOS), we cannot programmatically
+      // check TCC status — returning granted:false would create a deadlock
+      // (recheck also fails, user can never pass).  The JS backend uses
+      // osascript/screencapture which trigger OS-level permission prompts
+      // themselves, so the OS provides the safety net instead.
+      if (!cu.tcc) return { granted: true }
+      const accessibility = cu.tcc.checkAccessibility()
+      const screenRecording = cu.tcc.checkScreenRecording()
       return accessibility && screenRecording
         ? { granted: true }
         : { granted: false, accessibility, screenRecording }

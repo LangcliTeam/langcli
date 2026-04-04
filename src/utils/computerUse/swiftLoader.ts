@@ -13,11 +13,17 @@ let cached: ComputerUseAPI | undefined
  * these in drainRunLoop().
  */
 export function requireComputerUseSwift(): ComputerUseAPI {
-  if (process.platform !== 'darwin') {
-    throw new Error('@ant/computer-use-swift is macOS-only')
-  }
+  if (cached) return cached
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return (cached ??= require('@ant/computer-use-swift') as ComputerUseAPI)
+  const mod = require('@ant/computer-use-swift')
+  // macOS native .node exports a plain object with apps/display/screenshot directly.
+  // Our cross-platform package exports { ComputerUseAPI } class — needs instantiation.
+  if (mod.ComputerUseAPI && typeof mod.ComputerUseAPI === 'function') {
+    cached = new mod.ComputerUseAPI() as ComputerUseAPI
+  } else {
+    cached = mod as ComputerUseAPI
+  }
+  return cached
 }
 
 export type { ComputerUseAPI }

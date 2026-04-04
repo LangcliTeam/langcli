@@ -65,6 +65,18 @@ describe("permissionModeFromString", () => {
     expect(permissionModeFromString("unknown")).toBe("default");
     expect(permissionModeFromString("")).toBe("default");
   });
+
+  test("is case sensitive — uppercase returns default", () => {
+    expect(permissionModeFromString("PLAN")).toBe("default");
+    expect(permissionModeFromString("Default")).toBe("default");
+    expect(permissionModeFromString("PLAN")).toBe("default");
+  });
+
+  test("returns mode for all known external modes", () => {
+    for (const mode of EXTERNAL_PERMISSION_MODES) {
+      expect(permissionModeFromString(mode)).toBe(mode);
+    }
+  });
 });
 
 // ─── permissionModeTitle ───────────────────────────────────────────────
@@ -209,6 +221,11 @@ describe("isExternalPermissionMode", () => {
       expect(isExternalPermissionMode("default")).toBe(true);
       expect(isExternalPermissionMode("plan")).toBe(true);
       expect(isExternalPermissionMode("dontAsk")).toBe(true);
+    });
+
+    test("returns true for acceptEdits and bypassPermissions", () => {
+      expect(isExternalPermissionMode("acceptEdits")).toBe(true);
+      expect(isExternalPermissionMode("bypassPermissions")).toBe(true);
     });
   });
 });

@@ -3,6 +3,7 @@ import { CONTEXT_1M_BETA_HEADER } from '../constants/betas.js'
 import { getGlobalConfig } from './config.js'
 import { isEnvTruthy } from './envUtils.js'
 import { getCanonicalName } from './model/model.js'
+import { resolveAntModel } from './model/antModels.js'
 import { getModelCapability } from './model/modelCapabilities.js'
 
 // Model context window size (200k tokens for all models right now)
@@ -198,6 +199,14 @@ export function getModelMaxOutputTokens(model: string): {
   } else {
     defaultTokens = MAX_OUTPUT_TOKENS_DEFAULT
     upperLimit = MAX_OUTPUT_TOKENS_UPPER_LIMIT
+  }
+
+  if (model === "deepseek-v3.2") {
+    defaultTokens = 4_096
+    upperLimit = 8_192
+  } else if (model === "deepseek-v3.2-think") {
+    defaultTokens = 32768
+    upperLimit = 65536
   }
 
   const cap = getModelCapability(model)

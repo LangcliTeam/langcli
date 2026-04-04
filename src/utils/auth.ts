@@ -112,14 +112,13 @@ export function isAnthropicAuthEnabled(): boolean {
     return !!process.env.CLAUDE_CODE_OAUTH_TOKEN
   }
 
+  const settings = getSettings_DEPRECATED() || {}
   const is3P =
     isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK) ||
     isEnvTruthy(process.env.CLAUDE_CODE_USE_VERTEX) ||
-    isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY)
-
-  // Check if user has configured an external API key source
-  // This allows externally-provided API keys to work (without requiring proxy configuration)
-  const settings = getSettings_DEPRECATED() || {}
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY) ||
+    (settings as any).modelType === 'openai' ||
+    !!process.env.OPENAI_BASE_URL
   const apiKeyHelper = settings.apiKeyHelper
   const hasExternalAuthToken =
     process.env.ANTHROPIC_AUTH_TOKEN ||

@@ -23,6 +23,7 @@ import { requireComputerUseSwift } from './swiftLoader.js'
 let registered = false
 
 export function registerEscHotkey(onEscape: () => void): boolean {
+  if (process.platform !== 'darwin') return false
   if (registered) return true
   const cu = requireComputerUseSwift()
   if (!(cu as any).hotkey.registerEscape(onEscape)) {

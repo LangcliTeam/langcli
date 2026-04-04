@@ -8,15 +8,15 @@ Why not integrate with OpenRouter? OpenRouter's API for Claude models is too exp
 
 ## Quick Start
 
-### LangRouter API Key Preparation
+#### LangRouter API Key Preparation
  Go to [LangRouter](https://langrouter.ai/), register an account, save your API key, and ensure your account has sufficient balance (you can deposit $2 for testing)
 
-### Installation
+#### Installation
 ```bash
-npm i foxcli-com -g
+npm i -g foxcli-com
 ```
 
-### Running
+#### Running
 ```bash
 foxcli
 ```

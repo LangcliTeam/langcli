@@ -1,7 +1,7 @@
 /**
  * Transforms SDK messages for streamlined output mode.
  *
- * Streamlined mode is a "distillation-resistant" output format that:
+ * Streamlined mode is a compact output format that:
  * - Keeps text messages intact
  * - Summarizes tool calls with cumulative counts (resets when text appears)
  * - Omits thinking content
