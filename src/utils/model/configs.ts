@@ -2,6 +2,9 @@ import type { ModelName } from './model.js'
 
 export type ModelConfig = string
 
+export const LANGROUTER_AUTO_CONFIG = 'langrouter/auto' as const satisfies ModelConfig
+export const LANGROUTER_AUTO_FREE_CONFIG = 'langrouter/auto-free' as const satisfies ModelConfig
+
 export const DEEPSEEK_V3_2_CONFIG =
   'deepseek-v3.2' as const satisfies ModelConfig
 
@@ -19,6 +22,8 @@ export const CLAUDE_OPUS_4_6_CONFIG =
   'claude-opus-4-6' as const satisfies ModelConfig
 
 export const ALL_MODEL_CONFIGS = {
+  langrouterAuto: LANGROUTER_AUTO_CONFIG,
+  langrouterAutoFree: LANGROUTER_AUTO_FREE_CONFIG,
   deepseek: DEEPSEEK_V3_2_CONFIG,
   deepseekThink: DEEPSEEK_V3_2_THINK_CONFIG,
   moonshot: MOONSHOT_KIMI_K2_5_CONFIG,

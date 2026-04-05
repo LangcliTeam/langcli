@@ -3,6 +3,7 @@ import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import { capitalize } from '../stringUtils.js'
 import {
+  LANGROUTER_AUTO_CONFIG,
   DEEPSEEK_V3_2_CONFIG,
   DEEPSEEK_V3_2_THINK_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
@@ -60,23 +61,27 @@ export function getMainLoopModel(): ModelName {
 }
 
 export function getBestModel(): ModelName {
-  return MINIMAX_M2_5_CONFIG
+  return CLAUDE_OPUS_4_6_CONFIG
 }
 
 export function getDefaultOpusModel(): ModelName {
-  return MINIMAX_M2_5_CONFIG
+  return CLAUDE_OPUS_4_6_CONFIG
 }
 
 export function getDefaultSonnetModel(): ModelName {
-  return DEEPSEEK_V3_2_CONFIG
-}
-
-export function getDefaultHaikuModel(): ModelName {
   return MOONSHOT_KIMI_K2_5_CONFIG
 }
 
+export function getDefaultHaikuModel(): ModelName {
+  return DEEPSEEK_V3_2_CONFIG
+}
+
+export function getDefaultFreeModel(): ModelName {
+  return LANGROUTER_AUTO_CONFIG
+}
+
 export function getDefaultMainLoopModelSetting(): ModelName | ModelAlias {
-  return getDefaultSonnetModel()
+  return getDefaultFreeModel()
 }
 
 export function getDefaultMainLoopModel(): ModelName {
@@ -131,6 +136,10 @@ export function renderModelSetting(setting: ModelName | ModelAlias): string {
 }
 
 export function getPublicModelDisplayName(model: ModelName): string | null {
+  if (model === 'langrouter/auto') {
+    return 'LangRouter Auto'
+  }
+
   if (model === 'deepseek-v3.2') {
     return 'DeepSeek V3.2'
   }
@@ -173,6 +182,9 @@ export function parseUserSpecifiedModel(
 ): ModelName {
   const modelInputTrimmed = modelInput.trim()
 
+  if (modelInputTrimmed === 'langrouter/auto') {
+    return LANGROUTER_AUTO_CONFIG
+  }
   if (modelInputTrimmed === 'deepseek-v3.2') {
     return DEEPSEEK_V3_2_CONFIG
   }

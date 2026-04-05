@@ -12,6 +12,14 @@ export type ModelCosts = {
   webSearchRequests: number
 }
 
+export const COST_FREE_TIER = {
+  inputTokens: 0,
+  outputTokens: 0,
+  promptCacheWriteTokens: 0,
+  promptCacheReadTokens: 0,
+  webSearchRequests: 0,
+} as const satisfies ModelCosts
+
 export const COST_TIER_3_15 = {
   inputTokens: 3,
   outputTokens: 15,
@@ -39,6 +47,7 @@ export const MODEL_COSTS: Record<string, ModelCosts> = {
   'kimi-k2.5': COST_TIER_3_15,
   'kimi-k2': COST_TIER_3_15,
   'minimax-m2.5': COST_TIER_3_15,
+  'langrouter/auto': COST_FREE_TIER,
 }
 
 function tokensToUSDCost(modelCosts: ModelCosts, usage: Usage): number {

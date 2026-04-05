@@ -1,4 +1,5 @@
 import {
+  LANGROUTER_AUTO_CONFIG,
   DEEPSEEK_V3_2_CONFIG,
   DEEPSEEK_V3_2_THINK_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
@@ -19,9 +20,9 @@ export type ModelOption = {
 
 export function getDefaultOptionForUser(): ModelOption {
   return {
-    value: 'default',
-    label: 'Default (recommended)',
-    description: `Use the default model (${DEEPSEEK_V3_2_CONFIG})`,
+    value: LANGROUTER_AUTO_CONFIG,
+    label: 'Auto (free)',
+    description: `Use the auto-free model (${LANGROUTER_AUTO_CONFIG})`,
   }
 }
 
@@ -43,7 +44,7 @@ function getDeepSeekThinkOption(): ModelOption {
   }
 }
 
-function getMoonshotOption(): ModelOption {
+function getMoonshotK25Option(): ModelOption {
   return {
     value: MOONSHOT_KIMI_K2_5_CONFIG,
     label: 'Kimi K2.5',
@@ -82,9 +83,9 @@ function getClaudeOpusOption(): ModelOption {
 function getModelOptionsBase(): ModelOption[] {
   return [
     getDefaultOptionForUser(),
+    getMoonshotK25Option(),
     getDeepSeekOption(),
     getDeepSeekThinkOption(),
-    getMoonshotOption(),
     getMoonshotK2Option(),
     getMiniMaxOption(),
     getClaudeOpusOption(),
