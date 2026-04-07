@@ -8,7 +8,7 @@ export default () =>
     name: 'login',
     description: hasAnthropicApiKeyAuth()
       ? 'Switch Anthropic accounts'
-      : 'Sign in with your Anthropic account',
+      : 'Sign in with your LangRouter account',
     isEnabled: () => !isEnvTruthy(process.env.DISABLE_LOGIN_COMMAND),
     load: () => import('./login.js'),
   }) satisfies Command

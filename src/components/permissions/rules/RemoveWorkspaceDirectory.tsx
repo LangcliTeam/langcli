@@ -53,7 +53,7 @@ export function RemoveWorkspaceDirectory({
         <Text bold>{directoryPath}</Text>
       </Box>
       <Text>
-        Claude Code will no longer have access to files in this directory.
+        Foxcli will no longer have access to files in this directory.
       </Text>
       <Select
         onChange={handleSelect}

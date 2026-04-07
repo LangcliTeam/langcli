@@ -121,7 +121,7 @@ function ComputerUseTccPanel({
         </Box>
         <Text dimColor>
           Grant the missing permissions in System Settings, then select
-          &quot;Try again&quot;. macOS may require you to restart Claude Code
+          &quot;Try again&quot;. macOS may require you to restart Foxcli
           after granting Screen Recording.
         </Text>
         <Select options={options} onChange={onChange} onCancel={onDone} />

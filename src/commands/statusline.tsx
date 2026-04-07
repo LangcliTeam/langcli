@@ -4,7 +4,7 @@ import { AGENT_TOOL_NAME } from '../tools/AgentTool/constants.js'
 
 const statusline = {
   type: 'prompt',
-  description: "Set up Claude Code's status line UI",
+  description: "Set up Foxcli's status line UI",
   contentLength: 0, // Dynamic content
   aliases: [],
   name: 'statusline',

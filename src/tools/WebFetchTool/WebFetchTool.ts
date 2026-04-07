@@ -1,3 +1,4 @@
+import axios, { type AxiosResponse } from 'axios'
 import { z } from 'zod/v4'
 import { buildTool, type ToolDef } from '../../Tool.js'
 import type { PermissionUpdate } from '../../types/permissions.js'
@@ -20,6 +21,79 @@ import {
   isPreapprovedUrl,
   MAX_MARKDOWN_LENGTH,
 } from './utils.js'
+
+// API configuration for web fetch
+const WEB_FETCH_API_URL = 'https://api.langrouter.ai/v1/web_fetch'
+const WEB_FETCH_TIMEOUT_MS = 60_000
+
+// Web fetch API response type (matching t/web-fetch/web-fetch.ts)
+interface WebFetchResponse {
+  id: string
+  object: string
+  created: number
+  model: string
+  url: string
+  result: string
+  bytes: number
+  code: number
+  codeText: string
+  durationMs: number
+}
+
+async function getApiToken(): Promise<string | undefined> {
+  const { getApiKeyFromApiKeyHelper } = await import('../../utils/auth.js')
+  return (
+    process.env.ANTHROPIC_AUTH_TOKEN || (await getApiKeyFromApiKeyHelper(false))
+  )
+}
+
+async function scrapeWithWebFetch(
+  url: string,
+  abortController: AbortController,
+): Promise<{ markdown: string; bytes: number } | null> {
+  const token = await getApiToken()
+  if (!token) {
+    return null
+  }
+
+  const abortSignal = new AbortController()
+  const onAbort = () => abortSignal.abort()
+  abortController.signal.addEventListener('abort', onAbort, { once: true })
+
+  try {
+    const response: AxiosResponse<WebFetchResponse> = await axios.post(
+      WEB_FETCH_API_URL,
+      { url },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        signal: abortSignal.signal,
+        timeout: WEB_FETCH_TIMEOUT_MS,
+      },
+    )
+
+    if (abortSignal.signal.aborted) {
+      return null
+    }
+
+    const data = response.data
+    if (data.code !== 200 || !data.result) {
+      return null
+    }
+
+    return {
+      markdown: data.result,
+      bytes: data.bytes,
+    }
+  } catch (error) {
+    // Log error silently and return null to trigger fallback
+    return null
+  } finally {
+    abortController.signal.removeEventListener('abort', onAbort)
+  }
+}
 
 const inputSchema = lazySchema(() =>
   z.strictObject({
@@ -210,6 +284,29 @@ ${DESCRIPTION}`
     { abortController, options: { isNonInteractiveSession } },
   ) {
     const start = Date.now()
+
+    // Try web_fetch API first, fallback to getURLMarkdownContent on failure
+    const webFetchResult = await scrapeWithWebFetch(url, abortController)
+    if (webFetchResult) {
+      const { markdown, bytes } = webFetchResult
+      const result = await applyPromptToMarkdown(
+        prompt,
+        markdown,
+        abortController.signal,
+        isNonInteractiveSession,
+        false,
+      )
+      return {
+        data: {
+          bytes,
+          code: 200,
+          codeText: 'OK',
+          result,
+          durationMs: Date.now() - start,
+          url,
+        } satisfies Output,
+      }
+    }
 
     const response = await getURLMarkdownContent(url, abortController)
 

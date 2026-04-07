@@ -1,28 +1,41 @@
 /**
- * API-based search adapter — delegates to Anthropic's server-side
- * web_search_20250305 tool via a secondary API call.
+ * API-based search adapter — delegates to LangRouter's web_search API.
  */
 
-import type {
-  BetaContentBlock,
-  BetaWebSearchTool20250305,
-} from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
-import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../../services/analytics/growthbook.js'
-import { queryModelWithStreaming } from '../../../services/api/claude.js'
-import { createUserMessage } from '../../../utils/messages.js'
-import { getMainLoopModel, getSmallFastModel } from '../../../utils/model/model.js'
-import { jsonParse } from '../../../utils/slowOperations.js'
-import { asSystemPrompt } from '../../../utils/systemPromptType.js'
+import axios, { type AxiosResponse } from 'axios'
+import { AbortError } from '../../../utils/errors.js'
+import { getApiKeyFromApiKeyHelper } from '../../../utils/auth.js'
 import type { SearchResult, SearchOptions, WebSearchAdapter } from './types.js'
 
-function makeToolSchema(input: { allowedDomains?: string[]; blockedDomains?: string[] }): BetaWebSearchTool20250305 {
-  return {
-    type: 'web_search_20250305',
-    name: 'web_search',
-    allowed_domains: input.allowedDomains,
-    blocked_domains: input.blockedDomains,
-    max_uses: 8,
-  }
+const FETCH_TIMEOUT_MS = 60_000
+const API_BASE_URL = 'https://api.langrouter.ai/v1/web_search'
+
+interface WebSearchHit {
+  title: string
+  url: string
+  snippet?: string
+}
+
+interface WebSearchResultItem {
+  tool_use_id: string
+  content: WebSearchHit[]
+}
+
+interface WebSearchResponse {
+  id: string
+  object: string
+  created: number
+  model: string
+  query: string
+  results: (WebSearchResultItem | string)[]
+  durationSeconds: number
+}
+
+async function getApiToken(): Promise<string | undefined> {
+  return (
+    process.env.ANTHROPIC_AUTH_TOKEN ||
+    (await getApiKeyFromApiKeyHelper(false))
+  )
 }
 
 export class ApiSearchAdapter implements WebSearchAdapter {
@@ -32,142 +45,78 @@ export class ApiSearchAdapter implements WebSearchAdapter {
   ): Promise<SearchResult[]> {
     const { signal, onProgress, allowedDomains, blockedDomains } = options
 
-    const userMessage = createUserMessage({
-      content: 'Perform a web search for the query: ' + query,
-    })
-    const toolSchema = makeToolSchema({ allowedDomains, blockedDomains })
-
-    const useHaiku = getFeatureValue_CACHED_MAY_BE_STALE('tengu_plum_vx3', false)
-
-    const queryStream = queryModelWithStreaming({
-      messages: [userMessage],
-      systemPrompt: asSystemPrompt([
-        'You are an assistant for performing a web search tool use',
-      ]),
-      thinkingConfig: useHaiku
-        ? { type: 'disabled' as const }
-        : { type: 'enabled' as const, budgetTokens: 10000 },
-      tools: [],
-      signal: signal ?? new AbortController().signal,
-      options: {
-        getToolPermissionContext: async () => ({
-          mode: 'default' as const,
-          additionalWorkingDirectories: new Map(),
-          alwaysAllowRules: {},
-          alwaysDenyRules: {},
-          alwaysAskRules: {},
-          isBypassPermissionsModeAvailable: false,
-        }),
-        model: useHaiku ? getSmallFastModel() : getMainLoopModel(),
-        toolChoice: useHaiku ? { type: 'tool' as const, name: 'web_search' } : undefined,
-        isNonInteractiveSession: false,
-        hasAppendSystemPrompt: false,
-        extraToolSchemas: [toolSchema],
-        querySource: 'web_search_tool' as const,
-        agents: [],
-        mcpTools: [],
-        agentId: undefined,
-        effortValue: undefined,
-      },
-    })
-
-    const allContentBlocks: BetaContentBlock[] = []
-    let currentToolUseId: string | null = null
-    let currentToolUseJson = ''
-    const toolUseQueries = new Map<string, string>()
-    let progressCounter = 0
-
-    for await (const event of queryStream) {
-      if (event.type === 'assistant') {
-        const msg = event as { message: { content: BetaContentBlock[] } }
-        allContentBlocks.push(...msg.message.content)
-        continue
-      }
-
-      if (event.type === 'stream_event') {
-        const streamEvt = event as {
-          event?: {
-            type: string
-            content_block?: { type: string; id?: string; tool_use_id?: string; content?: unknown; [key: string]: unknown }
-            delta?: { type: string; partial_json?: string; [key: string]: unknown }
-            [key: string]: unknown
-          }
-        }
-
-        if (streamEvt.event?.type === 'content_block_start') {
-          const contentBlock = streamEvt.event.content_block
-          if (contentBlock && contentBlock.type === 'server_tool_use') {
-            currentToolUseId = contentBlock.id as string
-            currentToolUseJson = ''
-            continue
-          }
-        }
-
-        if (currentToolUseId && streamEvt.event?.type === 'content_block_delta') {
-          const delta = streamEvt.event.delta
-          if (delta?.type === 'input_json_delta' && delta.partial_json) {
-            currentToolUseJson += delta.partial_json
-            try {
-              const queryMatch = currentToolUseJson.match(
-                /"query"\s*:\s*"((?:[^"\\]|\\.)*)"/,
-              )
-              if (queryMatch && queryMatch[1]) {
-                const parsedQuery = jsonParse('"' + queryMatch[1] + '"')
-                if (
-                  !toolUseQueries.has(currentToolUseId) ||
-                  toolUseQueries.get(currentToolUseId) !== parsedQuery
-                ) {
-                  toolUseQueries.set(currentToolUseId, parsedQuery)
-                  progressCounter++
-                  onProgress?.({
-                    type: 'query_update',
-                    query: parsedQuery,
-                  })
-                }
-              }
-            } catch {
-              // Ignore parsing errors for partial JSON
-            }
-          }
-        }
-
-        if (streamEvt.event?.type === 'content_block_start') {
-          const contentBlock = streamEvt.event.content_block
-          if (contentBlock && contentBlock.type === 'web_search_tool_result') {
-            const toolUseId = contentBlock.tool_use_id as string
-            const actualQuery = toolUseQueries.get(toolUseId) || query
-            const content = contentBlock.content
-            progressCounter++
-            onProgress?.({
-              type: 'search_results_received',
-              resultCount: Array.isArray(content) ? content.length : 0,
-              query: actualQuery,
-            })
-          }
-        }
-      }
+    if (signal?.aborted) {
+      throw new AbortError()
     }
 
-    // Extract SearchResult[] from content blocks
-    return extractSearchResults(allContentBlocks)
+    onProgress?.({ type: 'query_update', query })
+
+    const token = await getApiToken()
+    if (!token) {
+      throw new Error('No API token available for web search')
+    }
+
+    const abortController = new AbortController()
+    if (signal) {
+      signal.addEventListener('abort', () => abortController.abort(), { once: true })
+    }
+
+    let response: AxiosResponse<WebSearchResponse>
+    try {
+      response = await axios.post<WebSearchResponse>(
+        API_BASE_URL,
+        {
+          query,
+          ...(allowedDomains?.length && { allowed_domains: allowedDomains }),
+          ...(blockedDomains?.length && { blocked_domains: blockedDomains }),
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          signal: abortController.signal,
+          timeout: FETCH_TIMEOUT_MS,
+        },
+      )
+    } catch (e) {
+      if (axios.isCancel(e) || abortController.signal.aborted) {
+        throw new AbortError()
+      }
+      throw e
+    }
+
+    if (abortController.signal.aborted) {
+      throw new AbortError()
+    }
+
+    const results = this.parseSearchResults(response.data)
+
+    onProgress?.({
+      type: 'search_results_received',
+      resultCount: results.length,
+      query,
+    })
+
+    return results
   }
-}
 
-function extractSearchResults(
-  blocks: BetaContentBlock[],
-): SearchResult[] {
-  const results: SearchResult[] = []
+  private parseSearchResults(response: WebSearchResponse): SearchResult[] {
+    const searchResults: SearchResult[] = []
 
-  for (const block of blocks) {
-    if (block.type === 'web_search_tool_result' && Array.isArray(block.content)) {
-      for (const r of block.content as Array<{ title: string; url: string; page_age?: string; type?: string }>) {
-        results.push({
-          title: r.title,
-          url: r.url,
+    for (const item of response.results) {
+      if (typeof item === 'string') continue
+      if (!item.content || !Array.isArray(item.content)) continue
+
+      for (const hit of item.content) {
+        searchResults.push({
+          title: hit.title,
+          url: hit.url,
+          snippet: hit.snippet,
         })
       }
     }
-  }
 
-  return results
+    return searchResults
+  }
 }

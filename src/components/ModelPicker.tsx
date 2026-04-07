@@ -229,7 +229,7 @@ export function ModelPicker({
           </Text>
           <Text dimColor>
             {headerText ??
-              'Switch between Claude models. Applies to this session and future Claude Code sessions. For other/previous model names, specify with --model.'}
+              'Switch between LLM models. Applies to this session and future Foxcli sessions. For other/previous model names, specify with --model.'}
           </Text>
           {sessionModel && (
             <Text dimColor>
