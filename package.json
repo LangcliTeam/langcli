@@ -1,6 +1,6 @@
 {
   "name": "foxcli-com",
-  "version": "2.1.90",
+  "version": "2.1.93",
   "description": "Fox CLI - interactive AI coding assistant in the terminal",
   "type": "module",
   "author": "foxcli <team@foxcli.com>",
@@ -64,7 +64,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "openai": "^4.73.0",
+    "openai": "^6.33.0",
     "@alcalzone/ansi-tokenize": "^0.3.0",
     "@ant/claude-for-chrome-mcp": "workspace:*",
     "@ant/computer-use-input": "workspace:*",
