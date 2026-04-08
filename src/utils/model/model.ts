@@ -10,6 +10,7 @@ import {
   MOONSHOT_KIMI_K2_CONFIG,
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
+  GLM_5_1_CONFIG,
 } from './configs.js'
 
 export type ModelShortName = string
@@ -105,6 +106,9 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   if (name.includes('minimax')) {
     return 'minimax-m2.5'
   }
+  if (name.includes('glm')) {
+    return 'glm-5.1'
+  }
   return fullModelName
 }
 
@@ -158,6 +162,9 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'claude-opus-4-6') {
     return 'Claude Opus 4.6'
   }
+  if (model === 'glm-5.1') {
+    return 'GLM 5.1'
+  }
   return null
 }
 
@@ -202,6 +209,9 @@ export function parseUserSpecifiedModel(
   }
   if (modelInputTrimmed === 'claude-opus-4-6') {
     return CLAUDE_OPUS_4_6_CONFIG
+  }
+  if (modelInputTrimmed === 'glm-5.1') {
+    return GLM_5_1_CONFIG
   }
 
   return modelInputTrimmed

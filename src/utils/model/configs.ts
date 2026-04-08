@@ -18,8 +18,9 @@ export const MOONSHOT_KIMI_K2_CONFIG = 'kimi-k2' as const satisfies ModelConfig
 
 export const MINIMAX_M2_5_CONFIG = 'minimax-m2.5' as const satisfies ModelConfig
 
-export const CLAUDE_OPUS_4_6_CONFIG =
-  'claude-opus-4-6' as const satisfies ModelConfig
+export const CLAUDE_OPUS_4_6_CONFIG = 'claude-opus-4-6' as const satisfies ModelConfig
+
+export const GLM_5_1_CONFIG = 'glm-5.1' as const satisfies ModelConfig
 
 export const ALL_MODEL_CONFIGS = {
   langrouterAuto: LANGROUTER_AUTO_CONFIG,
@@ -30,6 +31,7 @@ export const ALL_MODEL_CONFIGS = {
   moonshotK2: MOONSHOT_KIMI_K2_CONFIG,
   minimax: MINIMAX_M2_5_CONFIG,
   claudeOpus: CLAUDE_OPUS_4_6_CONFIG,
+  glm51: GLM_5_1_CONFIG,
 } as const satisfies Record<string, ModelConfig>
 
 export type ModelKey = keyof typeof ALL_MODEL_CONFIGS

@@ -6,6 +6,7 @@ import {
   MOONSHOT_KIMI_K2_CONFIG,
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
+  GLM_5_1_CONFIG,
 } from './configs.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { getGlobalConfig } from '../config.js'
@@ -80,6 +81,15 @@ function getClaudeOpusOption(): ModelOption {
   }
 }
 
+function getGlm51Option(): ModelOption {
+  return {
+    value: GLM_5_1_CONFIG,
+    label: 'Glm 5.1',
+    description: 'GLM 5.1 · Z.ai flagship model',
+    descriptionForModel: 'GLM 5.1 - Z.ai flagship model',
+  }
+}
+
 function getModelOptionsBase(): ModelOption[] {
   return [
     getDefaultOptionForUser(),
@@ -88,6 +98,7 @@ function getModelOptionsBase(): ModelOption[] {
     getDeepSeekThinkOption(),
     getMoonshotK2Option(),
     getMiniMaxOption(),
+    getGlm51Option(),
     getClaudeOpusOption(),
   ]
 }
