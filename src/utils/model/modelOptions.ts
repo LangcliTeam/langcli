@@ -3,7 +3,6 @@ import {
   DEEPSEEK_V3_2_CONFIG,
   DEEPSEEK_V3_2_THINK_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
-  MOONSHOT_KIMI_K2_CONFIG,
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
   GLM_5_1_CONFIG,
@@ -54,15 +53,6 @@ function getMoonshotK25Option(): ModelOption {
   }
 }
 
-function getMoonshotK2Option(): ModelOption {
-  return {
-    value: MOONSHOT_KIMI_K2_CONFIG,
-    label: 'Kimi K2',
-    description: 'Kimi K2 · Efficient and reliable',
-    descriptionForModel: 'Kimi K2 - efficient and reliable',
-  }
-}
-
 function getMiniMaxOption(): ModelOption {
   return {
     value: MINIMAX_M2_5_CONFIG,
@@ -84,7 +74,7 @@ function getClaudeOpusOption(): ModelOption {
 function getGlm51Option(): ModelOption {
   return {
     value: GLM_5_1_CONFIG,
-    label: 'Glm 5.1',
+    label: 'GLM 5.1',
     description: 'GLM 5.1 · Z.ai flagship model',
     descriptionForModel: 'GLM 5.1 - Z.ai flagship model',
   }
@@ -94,11 +84,10 @@ function getModelOptionsBase(): ModelOption[] {
   return [
     getDefaultOptionForUser(),
     getMoonshotK25Option(),
-    getDeepSeekOption(),
-    getDeepSeekThinkOption(),
-    getMoonshotK2Option(),
     getMiniMaxOption(),
     getGlm51Option(),
+    getDeepSeekOption(),
+    getDeepSeekThinkOption(),
     getClaudeOpusOption(),
   ]
 }

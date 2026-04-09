@@ -7,7 +7,6 @@ import {
   DEEPSEEK_V3_2_CONFIG,
   DEEPSEEK_V3_2_THINK_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
-  MOONSHOT_KIMI_K2_CONFIG,
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
   GLM_5_1_CONFIG,
@@ -153,9 +152,6 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'kimi-k2.5') {
     return 'Kimi K2.5'
   }
-  if (model === 'kimi-k2') {
-    return 'Kimi K2'
-  }
   if (model === 'minimax-m2.5') {
     return 'MiniMax M2.5'
   }
@@ -200,9 +196,6 @@ export function parseUserSpecifiedModel(
   }
   if (modelInputTrimmed === 'kimi-k2.5') {
     return MOONSHOT_KIMI_K2_5_CONFIG
-  }
-  if (modelInputTrimmed === 'kimi-k2' || modelInputTrimmed === 'moonshot-k2') {
-    return MOONSHOT_KIMI_K2_CONFIG
   }
   if (modelInputTrimmed === 'minimax-m2.5') {
     return MINIMAX_M2_5_CONFIG

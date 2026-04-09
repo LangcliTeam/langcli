@@ -11,10 +11,7 @@ export const DEEPSEEK_V3_2_CONFIG =
 export const DEEPSEEK_V3_2_THINK_CONFIG =
   'deepseek-v3.2-think' as const satisfies ModelConfig
 
-export const MOONSHOT_KIMI_K2_5_CONFIG =
-  'kimi-k2.5' as const satisfies ModelConfig
-
-export const MOONSHOT_KIMI_K2_CONFIG = 'kimi-k2' as const satisfies ModelConfig
+export const MOONSHOT_KIMI_K2_5_CONFIG = 'kimi-k2.5' as const satisfies ModelConfig
 
 export const MINIMAX_M2_5_CONFIG = 'minimax-m2.5' as const satisfies ModelConfig
 
@@ -28,7 +25,6 @@ export const ALL_MODEL_CONFIGS = {
   deepseek: DEEPSEEK_V3_2_CONFIG,
   deepseekThink: DEEPSEEK_V3_2_THINK_CONFIG,
   moonshot: MOONSHOT_KIMI_K2_5_CONFIG,
-  moonshotK2: MOONSHOT_KIMI_K2_CONFIG,
   minimax: MINIMAX_M2_5_CONFIG,
   claudeOpus: CLAUDE_OPUS_4_6_CONFIG,
   glm51: GLM_5_1_CONFIG,
