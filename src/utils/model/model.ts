@@ -162,6 +162,9 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'glm-5.1') {
     return 'GLM 5.1'
   }
+  if (model === 'gpt-5.3-codex') {
+    return 'GPT 5.3 codex'
+  }
   return null
 }
 
