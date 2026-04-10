@@ -47,7 +47,7 @@ export function IdeOnboardingDialog({
         title={
           <>
             <Text color="claude">✻ </Text>
-            <Text>Welcome to Foxcli for {ideName}</Text>
+            <Text>Welcome to Langcli for {ideName}</Text>
           </>
         }
         subtitle={
@@ -61,11 +61,11 @@ export function IdeOnboardingDialog({
       >
         <Box flexDirection="column" gap={1}>
           <Text>
-            • Foxcli has context of <Text color="suggestion">⧉ open files</Text>{' '}
+            • Langcli has context of <Text color="suggestion">⧉ open files</Text>{' '}
             and <Text color="suggestion">⧉ selected lines</Text>
           </Text>
           <Text>
-            • Review Foxcli&apos;s changes{' '}
+            • Review Langcli&apos;s changes{' '}
             <Text color="diffAddedWord">+11</Text>{' '}
             <Text color="diffRemovedWord">-22</Text> in the comfort of your IDE
           </Text>

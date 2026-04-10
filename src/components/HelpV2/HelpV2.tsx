@@ -110,7 +110,7 @@ export function HelpV2({ onClose, commands }: Props): React.ReactNode {
           title={
             process.env.USER_TYPE === 'ant'
               ? '/help'
-              : `Foxcli v${MACRO.VERSION}`
+              : `Langcli v${MACRO.VERSION}`
           }
           color="professionalBlue"
           defaultTab="general"
@@ -120,7 +120,7 @@ export function HelpV2({ onClose, commands }: Props): React.ReactNode {
         <Box marginTop={1}>
           <Text>
             For more help:{' '}
-            <Link url="https://foxcli.com/docs" />
+            <Link url="https://langcli.com/docs" />
           </Text>
         </Box>
         <Box marginTop={1}>

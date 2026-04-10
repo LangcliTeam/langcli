@@ -994,7 +994,7 @@ export function buildPlanApprovalOptions({
 
   if (showUltraplan) {
     options.push({
-      label: 'No, refine with Ultraplan on Foxcli on the web',
+      label: 'No, refine with Ultraplan on Langcli on the web',
       value: 'ultraplan',
     })
   }

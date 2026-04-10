@@ -131,7 +131,7 @@ export function MemoryFileSelector({
     const isGit = projectIsInGitRepo(getOriginalCwd())
 
     if (file.type === 'User' && !file.isNested) {
-      description = 'Saved in ~/.foxcli/CLAUDE.md'
+      description = 'Saved in ~/.langcli/CLAUDE.md'
     } else if (
       file.type === 'Project' &&
       !file.isNested &&

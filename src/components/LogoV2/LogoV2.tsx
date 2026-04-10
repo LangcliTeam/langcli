@@ -250,8 +250,8 @@ export function LogoV2(): React.ReactNode {
   const layoutMode = getLayoutMode(columns)
 
   const userTheme = resolveThemeSetting(getGlobalConfig().theme)
-  const borderTitle = ` ${color('claude', userTheme)('Foxcli')} ${color('inactive', userTheme)(`v${version}`)} `
-  const compactBorderTitle = color('claude', userTheme)(' Foxcli ')
+  const borderTitle = ` ${color('claude', userTheme)('Langcli')} ${color('inactive', userTheme)(`v${version}`)} `
+  const compactBorderTitle = color('claude', userTheme)(' Langcli ')
 
   // Early return for compact mode
   if (layoutMode === 'compact') {

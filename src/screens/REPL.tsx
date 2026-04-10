@@ -1574,7 +1574,7 @@ export function REPL({
   const haikuTitleAttemptedRef = useRef((initialMessages?.length ?? 0) > 0)
   const agentTitle = mainThreadAgentDefinition?.agentType
   const terminalTitle =
-    sessionTitle ?? agentTitle ?? haikuTitle ?? 'Foxcli'
+    sessionTitle ?? agentTitle ?? haikuTitle ?? 'Langcli'
   const isWaitingForApproval =
     toolUseConfirmQueue.length > 0 ||
     promptQueue.length > 0 ||
@@ -3583,7 +3583,7 @@ export function REPL({
       // which was broken by SessionStart hook messages (prepended via
       // useDeferredHookMessages) and attachment messages (appended by
       // processTextPrompt) — both pushed length past 1 on turn one, so the
-      // title silently fell through to the "Foxcli" default.
+      // title silently fell through to the "Langcli" default.
       if (
         !titleDisabled &&
         !sessionTitle &&
@@ -5468,7 +5468,7 @@ export function REPL({
     const handleSuspend = () => {
       // Print suspension instructions
       process.stdout.write(
-        `\nFoxcli has been suspended. Run \`fg\` to bring Foxcli back.\nNote: ctrl + z now suspends Foxcli, ctrl + _ undoes input.\n`,
+        `\nLangcli has been suspended. Run \`fg\` to bring Langcli back.\nNote: ctrl + z now suspends Langcli, ctrl + _ undoes input.\n`,
       )
     }
 

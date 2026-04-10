@@ -7,7 +7,7 @@ export function General(): React.ReactNode {
     <Box flexDirection="column" paddingY={1} gap={1}>
       <Box>
         <Text>
-          Foxcli understands your codebase, makes edits with your permission,
+          Langcli understands your codebase, makes edits with your permission,
           and executes commands — right from your terminal.
         </Text>
       </Box>

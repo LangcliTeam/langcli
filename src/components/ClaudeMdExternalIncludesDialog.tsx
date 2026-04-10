@@ -76,7 +76,7 @@ export function ClaudeMdExternalIncludesDialog({
       )}
 
       <Text dimColor>
-        Important: Only use Foxcli with files you trust. Accessing
+        Important: Only use Langcli with files you trust. Accessing
         untrusted files may pose security risks{' '}
         <Link url="https://code.claude.com/docs/en/security" />{' '}
       </Text>

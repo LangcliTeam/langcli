@@ -3,7 +3,7 @@ import type { Command } from '../../commands.js'
 const memory: Command = {
   type: 'local-jsx',
   name: 'memory',
-  description: 'Edit Foxcli memory files',
+  description: 'Edit Langcli memory files',
   load: () => import('./memory.js'),
 }
 

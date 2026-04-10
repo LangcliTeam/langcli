@@ -7,7 +7,7 @@ const feedback = {
   aliases: ['bug'],
   type: 'local-jsx',
   name: 'feedback',
-  description: `Submit feedback about Foxcli`,
+  description: `Submit feedback about Langcli`,
   argumentHint: '[report]',
   isEnabled: () =>
     !(

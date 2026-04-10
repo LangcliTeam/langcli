@@ -275,7 +275,7 @@ export function ConsoleOAuthFlow({
         });
         void sendNotification(
           {
-            message: 'Foxcli login successful',
+            message: 'Langcli login successful',
             notificationType: 'auth_success',
           },
           terminal,
@@ -462,7 +462,7 @@ function OAuthStatusMessage({
     case 'idle': {
       return (
         <Box flexDirection="column" gap={1} marginTop={1}>
-          <Text bold={true}>{startingMessage || 'Welcome to Foxcli'}</Text>
+          <Text bold={true}>{startingMessage || 'Welcome to Langcli'}</Text>
           <Text>Please input langRouter api-key and press enter to continue:</Text>
           <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1}>
             <TextInput

@@ -6,7 +6,7 @@ const WELCOME_V2_WIDTH = 58
 
 export function WelcomeV2(): React.ReactNode {
   const [theme] = useTheme()
-  const welcomeMessage = 'Welcome to Foxcli'
+  const welcomeMessage = 'Welcome to Langcli'
 
   if (env.terminal === 'Apple_Terminal') {
     return (

@@ -171,25 +171,25 @@ function getNotificationMessage(toolUseConfirm: ToolUseConfirm): string {
   )
 
   if (toolUseConfirm.tool === ExitPlanModeV2Tool) {
-    return 'Foxcli needs your approval for the plan'
+    return 'Langcli needs your approval for the plan'
   }
 
   if (toolUseConfirm.tool === EnterPlanModeTool) {
-    return 'Foxcli wants to enter plan mode'
+    return 'Langcli wants to enter plan mode'
   }
 
   if (
     feature('REVIEW_ARTIFACT') &&
     toolUseConfirm.tool === ReviewArtifactTool
   ) {
-    return 'Foxcli needs your approval for a review artifact'
+    return 'Langcli needs your approval for a review artifact'
   }
 
   if (!toolName || toolName.trim() === '') {
-    return 'Foxcli needs your attention'
+    return 'Langcli needs your attention'
   }
 
-  return `Foxcli needs your permission to use ${toolName}`
+  return `Langcli needs your permission to use ${toolName}`
 }
 
 // TODO: Move this to Tool.renderPermissionRequest
