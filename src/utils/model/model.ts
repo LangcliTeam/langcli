@@ -10,6 +10,7 @@ import {
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
   GLM_5_1_CONFIG,
+  GPT_5_3_CODEX_CONFIG,
 } from './configs.js'
 
 export type ModelShortName = string
@@ -205,6 +206,9 @@ export function parseUserSpecifiedModel(
   }
   if (modelInputTrimmed === 'glm-5.1') {
     return GLM_5_1_CONFIG
+  }
+  if (modelInputTrimmed === 'gpt-5.3-codex') {
+    return GPT_5_3_CODEX_CONFIG
   }
 
   return modelInputTrimmed

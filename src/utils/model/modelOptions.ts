@@ -6,6 +6,7 @@ import {
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
   GLM_5_1_CONFIG,
+  GPT_5_3_CODEX_CONFIG,
 } from './configs.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { getGlobalConfig } from '../config.js'
@@ -80,6 +81,15 @@ function getGlm51Option(): ModelOption {
   }
 }
 
+function getGptCodexOption(): ModelOption {
+  return {
+    value: GPT_5_3_CODEX_CONFIG,
+    label: 'GPT 5.3 codex',
+    description: 'GPT 5.3 codex · openai flagship coding model',
+    descriptionForModel: 'GPT 5.3 codex · openai flagship coding model',
+  }
+}
+
 function getModelOptionsBase(): ModelOption[] {
   return [
     getDefaultOptionForUser(),
@@ -89,6 +99,7 @@ function getModelOptionsBase(): ModelOption[] {
     getDeepSeekOption(),
     getDeepSeekThinkOption(),
     getClaudeOpusOption(),
+    getGptCodexOption(),
   ]
 }
 
