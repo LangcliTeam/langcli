@@ -1,7 +1,7 @@
-# Foxcli
+# Langcli
 
-Foxcli is an interactive AI coding assistant in the terminal, built upon the leaked code of [Claude Code](https://github.com/claude-code-best/claude-code).
-Therefore, the way to use Foxcli is exactly the same as that of standard Claude Code. Even more exciting is that Foxcli is deeply integrated with [LangRouter](https://langrouter.ai/),
+Langcli is an interactive AI coding assistant in the terminal, built upon the leaked code of [Claude Code](https://github.com/claude-code-best/claude-code).
+Therefore, the way to use Langcli is exactly the same as that of standard Claude Code. Even more exciting is that Langcli is deeply integrated with [LangRouter](https://langrouter.ai/),
 allowing you to friendly use and switch between mainstream LLM models (including Claude OPUS 4.6, GLM 5.1, Kimi K2.5, Minimax M2.5, Deepseek v3.2, etc.) within an ongoing session as needed, without interrupting your context.
 
 Why not integrate with OpenRouter? OpenRouter's API for Claude models is too expensive! Moreover, OpenRouter's Anthropic API interface is not as compatible with the official Claude Code API interface.
@@ -13,12 +13,12 @@ Why not integrate with OpenRouter? OpenRouter's API for Claude models is too exp
 
 #### Installation
 ```bash
-npm i -g foxcli-com
+npm i -g langcli-com
 ```
 
 #### Running
 ```bash
-foxcli
+langcli
 ```
 
 ## Compile from source code yourself (optional)
@@ -301,7 +301,7 @@ If you encounter any bugs, please open an issue and we will prioritize fixing th
 ## Project Structure
 
 ```
-foxcli/
+langcli/
 ├── src/
 │   ├── entrypoints/
 │   │   ├── cli.tsx          # Entry file (includes MACRO/feature polyfill)

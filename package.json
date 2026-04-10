@@ -1,22 +1,22 @@
 {
-  "name": "foxcli-com",
-  "version": "2.1.95",
+  "name": "langcli",
+  "version": "0.1.0",
   "description": "Fox CLI - interactive AI coding assistant in the terminal",
   "type": "module",
-  "author": "foxcli <team@foxcli.com>",
+  "author": "langcli <team@langcli.com>",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FoxcliTeam/foxcli.git"
+    "url": "git+https://github.com/LangcliTeam/langcli.git"
   },
-  "homepage": "https://github.com/FoxcliTeam/foxcli#readme",
+  "homepage": "https://github.com/LangcliTeam/langcli#readme",
   "bugs": {
-    "url": "https://github.com/FoxcliTeam/foxcli/issues"
+    "url": "https://github.com/LangcliTeam/langcli/issues"
   },
   "keywords": [
-    "foxcli",
+    "langcli",
     "langrouter",
     "openrouter",
     "claude",
@@ -32,7 +32,7 @@
   },
   "main": "dist/cli.js",
   "bin": {
-    "foxcli": "dist/cli.js"
+    "langcli": "dist/cli.js"
   },
   "workspaces": [
     "packages/*",
