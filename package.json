@@ -1,7 +1,7 @@
 {
-  "name": "langcli",
+  "name": "langcli-com",
   "version": "0.1.0",
-  "description": "Fox CLI - interactive AI coding assistant in the terminal",
+  "description": "Langcli - interactive AI coding assistant in the terminal",
   "type": "module",
   "author": "langcli <team@langcli.com>",
   "publishConfig": {
