@@ -1743,6 +1743,7 @@ export function getAutoUpdaterDisabledReason(): AutoUpdaterDisabledReason | null
   if (essentialTrafficEnvVar) {
     return { type: 'env', envVar: essentialTrafficEnvVar }
   }
+  /*
   const config = getGlobalConfig()
   if (
     config.autoUpdates === false &&
@@ -1750,7 +1751,7 @@ export function getAutoUpdaterDisabledReason(): AutoUpdaterDisabledReason | null
       config.autoUpdatesProtectedForNative !== true)
   ) {
     return { type: 'config' }
-  }
+  }*/
   return null
 }
 

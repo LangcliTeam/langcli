@@ -6,19 +6,48 @@ allowing you to friendly use and switch between mainstream LLM models (including
 
 Why not integrate with OpenRouter? OpenRouter's API for Claude models is too expensive! Moreover, OpenRouter's Anthropic API interface is not as compatible with the official Claude Code API interface.
 
+## Installation
+
+### Quick Install (Recommended)
+
+#### Linux / macOS
+
+```bash
+bash -c "$(curl -fsSL https://assets.langcli.com/installation/install-langcli.sh)"
+```
+
+#### Windows (Run as Administrator CMD)
+
+```cmd
+curl -fsSL -o %TEMP%\install-langcli.bat https://assets.langcli.com/installation/install-langcli.bat && %TEMP%\install-langcli.bat
+```
+
+> **Note**: It's recommended to restart your terminal after installation to ensure environment variables take effect.
+
+### Manual Installation
+
+#### Prerequisites
+
+Make sure you have Node.js 20 or later installed. Download it from [nodejs.org](https://nodejs.org/en/download).
+
+#### NPM
+
+```bash
+npm i -g langcli-com
+```
+
 ## Quick Start
 
 #### LangRouter API Key Preparation
  Go to [LangRouter](https://langrouter.ai/), register an account, save your API key, and ensure your account has sufficient balance (you can deposit $2 for testing)
 
-#### Installation
-```bash
-npm i -g langcli-com
-```
-
 #### Running
 ```bash
+# Start Langcli (interactive)
 langcli
+
+# Then, in the session:
+/help
 ```
 
 ## Compile from source code yourself (optional)
