@@ -39,7 +39,7 @@ npm i -g langcli-com
 ## Quick Start
 
 #### LangRouter API Key Preparation
- Go to [LangRouter](https://langrouter.ai/), register an account, save your API key, and ensure your account has sufficient balance (you can deposit $2 for testing)
+ Go to [LangRouter](https://langrouter.ai/), register an account, save your API key.
 
 #### Running
 ```bash
