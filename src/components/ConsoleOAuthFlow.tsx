@@ -14,6 +14,7 @@ import { sendNotification } from '../services/notifier.js';
 import { OAuthService } from '../services/oauth/index.js';
 import { getOauthAccountInfo, validateForceLoginOrg } from '../utils/auth.js';
 import { logError } from '../utils/log.js';
+import { applyConfigEnvironmentVariables } from '../utils/managedEnv.js';
 import { getSettings_DEPRECATED, updateSettingsForSource } from '../utils/settings/settings.js';
 import { KeyboardShortcutHint } from './design-system/KeyboardShortcutHint.js';
 import { Spinner } from './Spinner.js';
@@ -445,6 +446,8 @@ function OAuthStatusMessage({
           setSaveError(result.error.message);
           return;
         }
+
+        applyConfigEnvironmentVariables();
 
         setOAuthStatus({
           state: 'success',

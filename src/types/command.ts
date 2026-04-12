@@ -85,7 +85,7 @@ export type LocalJSXCommandContext = ToolUseContext & {
     ideInstallationStatus: IDEExtensionInstallationStatus | null
     theme: ThemeName
   }
-  onChangeAPIKey: () => void
+  onChangeAPIKey: () => Promise<void>
   onChangeDynamicMcpConfig?: (
     config: Record<string, ScopedMcpServerConfig>,
   ) => void

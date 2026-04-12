@@ -31,7 +31,7 @@ export async function call(
   return (
     <Login
       onDone={async success => {
-        context.onChangeAPIKey()
+        await context.onChangeAPIKey()
         // Signature-bearing blocks (thinking, connector_text) are bound to the API key —
         // strip them so the new key doesn't reject stale signatures.
         context.setMessages(stripSignatureBlocks)
