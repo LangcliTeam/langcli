@@ -51,7 +51,7 @@ export function createWhatsNewFeed(releaseNotes: string[]): FeedConfig {
   const emptyMessage =
     process.env.USER_TYPE === 'ant'
       ? 'Unable to fetch latest claude-cli-internal commits'
-      : 'Check the Claude Code changelog for updates'
+      : 'Check the langcli changelog for updates'
 
   return {
     title:
@@ -78,7 +78,7 @@ export function createProjectOnboardingFeed(steps: Step[]): FeedConfig {
 
   const warningText =
     getCwd() === homedir()
-      ? 'Note: You have launched claude in your home directory. For the best experience, launch it in a project directory instead.'
+      ? 'Note: You have launched langcli in your home directory. For the best experience, launch it in a project directory instead.'
       : undefined
 
   if (warningText) {
@@ -96,8 +96,8 @@ export function createProjectOnboardingFeed(steps: Step[]): FeedConfig {
 export function createGuestPassesFeed(): FeedConfig {
   const reward = getCachedReferrerReward()
   const subtitle = reward
-    ? `Share Claude Code and earn ${formatCreditAmount(reward)} of extra usage`
-    : 'Share Claude Code with friends'
+    ? `Share langcli and earn ${formatCreditAmount(reward)} of extra usage`
+    : 'Share langcli with friends'
   return {
     title: '3 guest passes',
     lines: [],

@@ -162,7 +162,7 @@ async function getInstallationPath(): Promise<string> {
     }
 
     try {
-      const path = await which('claude')
+      const path = await which('langcli')
       if (path) {
         return path
       }
@@ -172,8 +172,8 @@ async function getInstallationPath(): Promise<string> {
 
     // If we can't find it, check common locations
     try {
-      await getFsImplementation().stat(join(homedir(), '.local/bin/claude'))
-      return join(homedir(), '.local/bin/claude')
+      await getFsImplementation().stat(join(homedir(), '.local/bin/langcli'))
+      return join(homedir(), '.local/bin/langcli')
     } catch {
       // Not found
     }
@@ -209,14 +209,14 @@ async function detectMultipleInstallations(): Promise<
   const installations: Array<{ type: string; path: string }> = []
 
   // Check for local installation
-  const localPath = join(homedir(), '.claude', 'local')
+  const localPath = join(homedir(), '.langcli', 'local')
   if (await localInstallationExists()) {
     installations.push({ type: 'npm-local', path: localPath })
   }
 
   // Check for global npm installation
-  const packagesToCheck = ['@anthropic-ai/claude-code']
-  if (MACRO.PACKAGE_URL && MACRO.PACKAGE_URL !== '@anthropic-ai/claude-code') {
+  const packagesToCheck = ['langcli-com']
+  if (MACRO.PACKAGE_URL && MACRO.PACKAGE_URL !== 'langcli-com') {
     packagesToCheck.push(MACRO.PACKAGE_URL)
   }
   const npmResult = await execFileNoThrow('npm', [
@@ -233,8 +233,8 @@ async function detectMultipleInstallations(): Promise<
     // Linux / macOS have prefix/bin/claude and prefix/lib/node_modules
     // Windows has prefix/claude and prefix/node_modules
     const globalBinPath = isWindows
-      ? join(npmPrefix, 'claude')
-      : join(npmPrefix, 'bin', 'claude')
+      ? join(npmPrefix, 'langcli')
+      : join(npmPrefix, 'bin', 'langcli')
 
     let globalBinExists = false
     try {
@@ -289,7 +289,7 @@ async function detectMultipleInstallations(): Promise<
   // Check for native installation
 
   // Check common native installation paths
-  const nativeBinPath = join(homedir(), '.local', 'bin', 'claude')
+  const nativeBinPath = join(homedir(), '.local', 'bin', 'langcli')
   try {
     await fs.stat(nativeBinPath)
     installations.push({ type: 'native', path: nativeBinPath })
@@ -300,7 +300,7 @@ async function detectMultipleInstallations(): Promise<
   // Also check if config indicates native installation
   const config = getGlobalConfig()
   if (config.installMethod === 'native') {
-    const nativeDataPath = join(homedir(), '.local', 'share', 'claude')
+    const nativeDataPath = join(homedir(), '.local', 'share', 'langcli')
     try {
       await fs.stat(nativeDataPath)
       if (!installations.some(i => i.type === 'native')) {
@@ -372,6 +372,7 @@ async function detectConfigurationIssues(
 
   // Check if ~/.local/bin is in PATH for native installations
   if (type === 'native') {
+    /*
     const path = process.env.PATH || ''
     const pathDirectories = path.split(delimiter)
     const homeDir = homedir()
@@ -426,7 +427,7 @@ async function detectConfigurationIssues(
           fix: `Run: echo 'export PATH="$HOME/.local/bin:$PATH"' >> ${displayPath} then open a new terminal or run: source ${displayPath}`,
         })
       }
-    }
+    }*/
   }
 
   // Check for configuration mismatches
@@ -435,14 +436,14 @@ async function detectConfigurationIssues(
     if (type === 'npm-local' && config.installMethod !== 'local') {
       warnings.push({
         issue: `Running from local installation but config install method is '${config.installMethod}'`,
-        fix: 'Consider using native installation: claude install',
+        fix: 'Consider using native installation: langcli install',
       })
     }
 
     if (type === 'native' && config.installMethod !== 'native') {
       warnings.push({
         issue: `Running native installation but config install method is '${config.installMethod}'`,
-        fix: 'Run claude install to update configuration',
+        fix: 'Run langcli install to update configuration',
       })
     }
   }
@@ -450,7 +451,7 @@ async function detectConfigurationIssues(
   if (type === 'npm-global' && (await localInstallationExists())) {
     warnings.push({
       issue: 'Local installation exists but not being used',
-      fix: 'Consider using native installation: claude install',
+      fix: 'Consider using native installation: langcli install',
     })
   }
 
@@ -460,22 +461,22 @@ async function detectConfigurationIssues(
   // Check if running local installation but it's not in PATH
   if (type === 'npm-local') {
     // Check if claude is already accessible via PATH
-    const whichResult = await which('claude')
+    const whichResult = await which('langcli')
     const claudeInPath = !!whichResult
 
-    // Only show warning if claude is NOT in PATH AND no valid alias exists
+    // Only show warning if langcli is NOT in PATH AND no valid alias exists
     if (!claudeInPath && !validAlias) {
       if (existingAlias) {
         // Alias exists but points to invalid target
         warnings.push({
           issue: 'Local installation not accessible',
-          fix: `Alias exists but points to invalid target: ${existingAlias}. Update alias: alias claude="~/.claude/local/claude"`,
+          fix: `Alias exists but points to invalid target: ${existingAlias}. Update alias: alias langcli="~/.langcli/local/langcli"`,
         })
       } else {
         // No alias exists and not in PATH
         warnings.push({
           issue: 'Local installation not accessible',
-          fix: 'Create alias: alias claude="~/.claude/local/claude"',
+          fix: 'Create alias: alias langcli="~/.langcli/local/langcli"',
         })
       }
     }
@@ -536,10 +537,10 @@ export async function getDoctorDiagnostic(): Promise<DiagnosticInfo> {
 
     for (const install of npmInstalls) {
       if (install.type === 'npm-global') {
-        let uninstallCmd = 'npm -g uninstall @anthropic-ai/claude-code'
+        let uninstallCmd = 'npm -g uninstall langcli-com'
         if (
           MACRO.PACKAGE_URL &&
-          MACRO.PACKAGE_URL !== '@anthropic-ai/claude-code'
+          MACRO.PACKAGE_URL !== 'langcli-com'
         ) {
           uninstallCmd += ` && npm -g uninstall ${MACRO.PACKAGE_URL}`
         }
@@ -580,7 +581,7 @@ export async function getDoctorDiagnostic(): Promise<DiagnosticInfo> {
     if (!hasUpdatePermissions && !getAutoUpdaterDisabledReason()) {
       warnings.push({
         issue: 'Insufficient permissions for auto-updates',
-        fix: 'Do one of: (1) Re-install node without sudo, or (2) Use `claude install` for native installation',
+        fix: 'Do one of: (1) Re-install node without sudo, or (2) Use `langcli install` for native installation',
       })
     }
   }

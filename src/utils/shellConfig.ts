@@ -9,7 +9,7 @@ import { join } from 'path'
 import { isFsInaccessible } from './errors.js'
 import { getLocalClaudePath } from './localInstaller.js'
 
-export const CLAUDE_ALIAS_REGEX = /^\s*alias\s+claude\s*=/
+export const CLAUDE_ALIAS_REGEX = /^\s*alias\s+langcli\s*=/
 
 type EnvLike = Record<string, string | undefined>
 
@@ -48,14 +48,14 @@ export function filterClaudeAliases(lines: string[]): {
 } {
   let hadAlias = false
   const filtered = lines.filter(line => {
-    // Check if this is a claude alias
+    // Check if this is a langcli alias
     if (CLAUDE_ALIAS_REGEX.test(line)) {
       // Extract the alias target - handle spaces, quotes, and various formats
       // First try with quotes
-      let match = line.match(/alias\s+claude\s*=\s*["']([^"']+)["']/)
+      let match = line.match(/alias\s+langcli\s*=\s*["']([^"']+)["']/)
       if (!match) {
         // Try without quotes (capturing until end of line or comment)
-        match = line.match(/alias\s+claude\s*=\s*([^#\n]+)/)
+        match = line.match(/alias\s+langcli\s*=\s*([^#\n]+)/)
       }
 
       if (match && match[1]) {
@@ -123,7 +123,7 @@ export async function findClaudeAlias(
     for (const line of lines) {
       if (CLAUDE_ALIAS_REGEX.test(line)) {
         // Extract the alias target
-        const match = line.match(/alias\s+claude=["']?([^"'\s]+)/)
+        const match = line.match(/alias\s+langcli=["']?([^"'\s]+)/)
         if (match && match[1]) {
           return match[1]
         }

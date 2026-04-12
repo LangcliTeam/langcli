@@ -14,7 +14,10 @@ const result = await Bun.build({
   outdir,
   target: 'node',
   splitting: false,
-  define: getMacroDefines(),
+  define: {
+    ...getMacroDefines(),
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
 })
 
 if (!result.success) {

@@ -16,12 +16,14 @@ export function useNpmDeprecationNotification(): void {
     }
     const installationType = await getCurrentInstallationType()
     if (installationType === 'development') return null
+    /*
     return {
       timeoutMs: 15000,
       key: 'npm-deprecation-warning',
       text: NPM_DEPRECATION_MESSAGE,
       color: 'warning',
       priority: 'high',
-    }
+    }*/
+    return null;
   })
 }
