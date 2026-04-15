@@ -409,26 +409,7 @@ export function shouldUseSessionMemoryCompaction(): boolean {
     return false
   }
 
-  const sessionMemoryFlag = getFeatureValue_CACHED_MAY_BE_STALE(
-    'tengu_session_memory',
-    false,
-  )
-  const smCompactFlag = getFeatureValue_CACHED_MAY_BE_STALE(
-    'tengu_sm_compact',
-    false,
-  )
-  const shouldUse = sessionMemoryFlag && smCompactFlag
-
-  // Log flag states for debugging (ant-only to avoid noise in external logs)
-  if (process.env.USER_TYPE === 'ant') {
-    logEvent('tengu_sm_compact_flag_check', {
-      tengu_session_memory: sessionMemoryFlag,
-      tengu_sm_compact: smCompactFlag,
-      should_use: shouldUse,
-    })
-  }
-
-  return shouldUse
+  return true;
 }
 
 /**

@@ -18,6 +18,7 @@ const result = await Bun.build({
     ...getMacroDefines(),
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
+  features: ['BUDDY'],
 })
 
 if (!result.success) {
