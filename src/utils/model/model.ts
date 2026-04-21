@@ -11,6 +11,7 @@ import {
   CLAUDE_OPUS_4_6_CONFIG,
   GLM_5_1_CONFIG,
   GPT_5_3_CODEX_CONFIG,
+  MOONSHOT_KIMI_K2_6_CONFIG,
 } from './configs.js'
 
 export type ModelShortName = string
@@ -94,6 +95,9 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   if (name.includes('deepseek')) {
     return 'deepseek-v3-2'
   }
+  if (name.includes('kimi-k2.6')) {
+    return 'kimi-k2.6'
+  }
   if (name.includes('kimi-k2.5')) {
     return 'kimi-k2.5'
   }
@@ -165,6 +169,9 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'gpt-5.3-codex') {
     return 'GPT 5.3 codex'
   }
+  if (model === 'kimi-k2.6') {
+    return 'Kimi K2.6'
+  }
   return null
 }
 
@@ -212,6 +219,9 @@ export function parseUserSpecifiedModel(
   }
   if (modelInputTrimmed === 'gpt-5.3-codex') {
     return GPT_5_3_CODEX_CONFIG
+  }
+  if (modelInputTrimmed === 'kimi-k2.6') {
+    return MOONSHOT_KIMI_K2_6_CONFIG
   }
 
   return modelInputTrimmed

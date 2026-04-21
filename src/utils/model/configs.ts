@@ -8,8 +8,7 @@ export const LANGROUTER_AUTO_FREE_CONFIG = 'langrouter/auto-free' as const satis
 export const DEEPSEEK_V3_2_CONFIG =
   'deepseek-v3.2' as const satisfies ModelConfig
 
-export const DEEPSEEK_V3_2_THINK_CONFIG =
-  'deepseek-v3.2-think' as const satisfies ModelConfig
+export const DEEPSEEK_V3_2_THINK_CONFIG = 'deepseek-v3.2-think' as const satisfies ModelConfig
 
 export const MOONSHOT_KIMI_K2_5_CONFIG = 'kimi-k2.5' as const satisfies ModelConfig
 
@@ -21,6 +20,8 @@ export const GLM_5_1_CONFIG = 'glm-5.1' as const satisfies ModelConfig
 
 export const GPT_5_3_CODEX_CONFIG = 'gpt-5.3-codex' as const satisfies ModelConfig
 
+export const MOONSHOT_KIMI_K2_6_CONFIG = 'kimi-k2.6' as const satisfies ModelConfig
+
 export const ALL_MODEL_CONFIGS = {
   langrouterAuto: LANGROUTER_AUTO_CONFIG,
   langrouterAutoFree: LANGROUTER_AUTO_FREE_CONFIG,
@@ -31,6 +32,7 @@ export const ALL_MODEL_CONFIGS = {
   claudeOpus: CLAUDE_OPUS_4_6_CONFIG,
   glm51: GLM_5_1_CONFIG,
   gptCodex: GPT_5_3_CODEX_CONFIG,
+  moonshot26: MOONSHOT_KIMI_K2_6_CONFIG,
 } as const satisfies Record<string, ModelConfig>
 
 export type ModelKey = keyof typeof ALL_MODEL_CONFIGS

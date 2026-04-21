@@ -7,6 +7,7 @@ import {
   CLAUDE_OPUS_4_6_CONFIG,
   GLM_5_1_CONFIG,
   GPT_5_3_CODEX_CONFIG,
+  MOONSHOT_KIMI_K2_6_CONFIG,
 } from './configs.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { getGlobalConfig } from '../config.js'
@@ -42,6 +43,15 @@ function getDeepSeekThinkOption(): ModelOption {
     label: 'DeepSeek V3.2 Think',
     description: 'DeepSeek V3.2 Think · Enhanced reasoning',
     descriptionForModel: 'DeepSeek V3.2 Think - enhanced reasoning',
+  }
+}
+
+function getMoonshotK26Option(): ModelOption {
+  return {
+    value: MOONSHOT_KIMI_K2_6_CONFIG,
+    label: 'Kimi K2.6',
+    description: 'Kimi K2.6 · Flagship model',
+    descriptionForModel: 'Kimi K2.6 - Flagship model',
   }
 }
 
@@ -85,14 +95,15 @@ function getGptCodexOption(): ModelOption {
   return {
     value: GPT_5_3_CODEX_CONFIG,
     label: 'GPT 5.3 codex',
-    description: 'GPT 5.3 codex · openai flagship coding model',
-    descriptionForModel: 'GPT 5.3 codex · openai flagship coding model',
+    description: 'GPT 5.3 codex · Openai flagship coding model',
+    descriptionForModel: 'GPT 5.3 codex · Openai flagship coding model',
   }
 }
 
 function getModelOptionsBase(): ModelOption[] {
   return [
     getDefaultOptionForUser(),
+    getMoonshotK26Option(),
     getMoonshotK25Option(),
     getMiniMaxOption(),
     getGlm51Option(),
