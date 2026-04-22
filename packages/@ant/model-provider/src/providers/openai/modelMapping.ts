@@ -34,11 +34,16 @@ function getModelFamily(model: string): 'haiku' | 'sonnet' | 'opus' | null {
  * 5. Pass through original model name
  */
 export function resolveOpenAIModel(anthropicModel: string): string {
+  // Strip custom: prefix (user-defined models from settings.json modelProviders)
+  const customModel = anthropicModel.startsWith('custom:')
+    ? anthropicModel.slice(7)
+    : anthropicModel
+
   if (process.env.OPENAI_MODEL) {
     return process.env.OPENAI_MODEL
   }
 
-  const cleanModel = anthropicModel.replace(/\[1m\]$/, '')
+  const cleanModel = customModel.replace(/\[1m\]$/, '')
 
   const family = getModelFamily(cleanModel)
   if (family) {

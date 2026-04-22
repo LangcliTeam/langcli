@@ -1075,6 +1075,11 @@ export const SettingsSchema = lazySchema(() =>
             'Useful for enterprise administrators to add organization-specific context ' +
             '(e.g., "All plugins from our internal marketplace are vetted and approved.").',
         ),
+      modelProviders: ModelProvidersSchema().optional().describe(
+        'Custom model provider configurations. ' +
+          'Supports openai, anthropic, and gemini as provider keys. ' +
+          'Each provider can have multiple model configurations.',
+      ),
     })
     .passthrough(),
 )
@@ -1153,3 +1158,53 @@ export type PluginConfig = {
     [serverName: string]: UserConfigValues
   }
 }
+
+const ModelProviderKeySchema = lazySchema(() => z.enum(['openai', 'anthropic', 'gemini']))
+
+const SamplingParamsSchema = lazySchema(() =>
+  z.object({
+    temperature: z.number().optional(),
+    top_p: z.number().optional(),
+    top_k: z.number().optional(),
+    max_tokens: z.number().optional(),
+    presence_penalty: z.number().optional(),
+    frequency_penalty: z.number().optional(),
+    stop: z.union([z.string(), z.array(z.string())]).optional(),
+  }),
+)
+
+const GenerationConfigSchema = lazySchema(() =>
+  z.object({
+    timeout: z.number().optional(),
+    maxRetries: z.number().optional(),
+    enableCacheControl: z.boolean().optional(),
+    contextWindowSize: z.number().optional(),
+    modalities: z
+      .object({
+        image: z.boolean().optional(),
+        text: z.boolean().optional(),
+      })
+      .optional(),
+    customHeaders: z.record(z.string(), z.string()).optional(),
+    extra_body: z.record(z.string(), z.unknown()).optional(),
+    samplingParams: SamplingParamsSchema().optional(),
+  }),
+)
+
+const ModelProviderConfigSchema = lazySchema(() =>
+  z
+    .object({
+      id: z.string().describe('Model identifier'),
+      name: z.string().describe('Display name for the model'),
+      envKey: z.string().describe('Environment variable name for API key'),
+      baseUrl: z.string().url().describe('Base URL for API endpoint'),
+      generationConfig: GenerationConfigSchema().optional(),
+    })
+    .strict(),
+)
+
+const ModelProvidersSchema = lazySchema(() =>
+  z.record(ModelProviderKeySchema(), z.array(ModelProviderConfigSchema())),
+)
+
+export type ModelProviders = z.infer<ReturnType<typeof ModelProvidersSchema>>

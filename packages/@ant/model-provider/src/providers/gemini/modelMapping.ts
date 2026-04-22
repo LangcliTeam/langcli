@@ -6,11 +6,16 @@ function getModelFamily(model: string): 'haiku' | 'sonnet' | 'opus' | null {
 }
 
 export function resolveGeminiModel(anthropicModel: string): string {
+  // Strip custom: prefix (user-defined models from settings.json modelProviders)
+  const customModel = anthropicModel.startsWith('custom:')
+    ? anthropicModel.slice(7)
+    : anthropicModel
+
   if (process.env.GEMINI_MODEL) {
     return process.env.GEMINI_MODEL
   }
 
-  const cleanModel = anthropicModel.replace(/\[1m\]$/i, '')
+  const cleanModel = customModel.replace(/\[1m\]$/i, '')
   const family = getModelFamily(cleanModel)
 
   if (!family) {
