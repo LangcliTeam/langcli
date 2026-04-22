@@ -88,6 +88,8 @@
     "@changesets/changelog-github": "^0.6.0",
     "@commander-js/extra-typings": "^14.0.0",
     "@growthbook/growthbook": "^1.6.5",
+    "@langfuse/otel": "^5.1.0",
+    "@langfuse/tracing": "^5.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.214.0",

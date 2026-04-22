@@ -228,6 +228,9 @@ import {
 } from '../compact/microCompact.js'
 import { getInitializationStatus } from '../lsp/manager.js'
 import { isToolFromMcpServer } from '../mcp/utils.js'
+import { recordLLMObservation } from '../langfuse/index.js'
+import type { LangfuseSpan } from '../langfuse/index.js'
+import { convertMessagesToLangfuse, convertOutputToLangfuse, convertToolsToLangfuse } from '../langfuse/convert.js'
 import { withStreamingVCR, withVCR } from '../vcr.js'
 import { CLIENT_REQUEST_ID_HEADER, getAnthropicClient } from './client.js'
 import {
@@ -318,11 +321,6 @@ export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
 }
 
 export function getPromptCachingEnabled(model: string): boolean {
-  const provider = getAPIProvider()
-  if (provider !== 'firstParty' && provider !== 'bedrock' && provider !== 'vertex') {
-    return false
-  }
-  
   // Global disable takes precedence
   if (isEnvTruthy(process.env.DISABLE_PROMPT_CACHING)) return false
 
@@ -645,24 +643,50 @@ export function assistantMessageToMessageParam(
     } else {
       return {
         role: 'assistant',
-        content: message.message.content.map((_, i) => ({
-          ..._,
-          ...(i === message.message.content.length - 1 &&
-          _.type !== 'thinking' &&
-          _.type !== 'redacted_thinking' &&
-          (feature('CONNECTOR_TEXT') ? !isConnectorTextBlock(_) : true)
-            ? enablePromptCaching
-              ? { cache_control: getCacheControl({ querySource }) }
-              : {}
-            : {}),
-        })),
+        content: message.message!.content!.map((_, i) => {
+          const contentBlock = stripGeminiProviderMetadata(_)
+          return {
+            ...contentBlock,
+            ...(i === message.message!.content!.length - 1 &&
+            contentBlock.type !== 'thinking' &&
+            contentBlock.type !== 'redacted_thinking' &&
+            (feature('CONNECTOR_TEXT')
+              ? !isConnectorTextBlock(contentBlock)
+              : true)
+              ? enablePromptCaching
+                ? { cache_control: getCacheControl({ querySource }) }
+                : {}
+              : {}),
+          }
+        }),
       }
     }
   }
   return {
     role: 'assistant',
-    content: message.message.content,
+    content:
+      typeof message.message!.content === 'string'
+        ? message.message!.content
+        : message.message!.content!.map(stripGeminiProviderMetadata) as BetaContentBlockParam[],
   }
+}
+
+function stripGeminiProviderMetadata<T extends BetaContentBlockParam | string>(
+  contentBlock: T,
+): T {
+  if (
+    typeof contentBlock === 'string' ||
+    !('_geminiThoughtSignature' in (contentBlock as object))
+  ) {
+    return contentBlock
+  }
+
+  const obj = contentBlock as unknown as Record<string, unknown>
+  const {
+    _geminiThoughtSignature: _unusedGeminiThoughtSignature,
+    ...rest
+  } = obj
+  return rest as unknown as T
 }
 
 export type Options = {
@@ -696,6 +720,8 @@ export type Options = {
   // so the model can pace itself. `remaining` is computed by the caller
   // (query.ts decrements across the agentic loop).
   taskBudget?: { total: number; remaining?: number }
+  /** Langfuse root trace span for observability. No-op if null/undefined. */
+  langfuseTrace?: LangfuseSpan | null
 }
 
 export async function queryModelWithoutStreaming({
@@ -1312,6 +1338,25 @@ async function* queryModel(
   if (getAPIProvider() === 'openai') {
     const { queryModelOpenAI } = await import('./openai/index.js')
     yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options)
+    return
+  }
+
+  if (getAPIProvider() === 'gemini') {
+    const { queryModelGemini } = await import('./gemini/index.js')
+    yield* queryModelGemini(
+      messagesForAPI,
+      systemPrompt,
+      filteredTools,
+      signal,
+      options,
+      thinkingConfig,
+    )
+    return
+  }
+
+  if (getAPIProvider() === 'grok') {
+    const { queryModelGrok } = await import('./grok/index.js')
+    yield* queryModelGrok(messagesForAPI, systemPrompt, filteredTools, signal, options)
     return
   }
 
@@ -2193,6 +2238,7 @@ async function* queryModel(
             const m: AssistantMessage = {
               message: {
                 ...partialMessage,
+                usage: partialMessage.usage ?? { ...EMPTY_USAGE },
                 content: normalizeContentFromAPI(
                   [contentBlock] as BetaContentBlock[],
                   tools,
