@@ -289,13 +289,15 @@ export type CustomModelConfig = {
 export function getCustomModelConfig(
   modelId: string,
 ): CustomModelConfig | undefined {
+  if (!isCustomModel(modelId)) {
+    return;
+  }
+
   const settings = getSettings_DEPRECATED() || {}
   const modelProviders = settings.modelProviders as ModelProviders | undefined
   if (!modelProviders) return undefined
 
-  const actualModelId = isCustomModel(modelId)
-    ? getCustomModelId(modelId)
-    : modelId
+  const actualModelId = getCustomModelId(modelId)
   if (!actualModelId) return undefined
 
   for (const [_provider, models] of Object.entries(modelProviders)) {
