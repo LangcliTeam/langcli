@@ -17,6 +17,7 @@ const result = await Bun.build({
   define: {
     ...getMacroDefines(),
     'process.env.NODE_ENV': JSON.stringify('production'),
+    'process.env.DISABLE_TELEMETRY': JSON.stringify('1'),
   },
   features: ['BUDDY'],
 })

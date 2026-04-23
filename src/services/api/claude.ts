@@ -395,6 +395,8 @@ export function getCacheControl({
  * TTLs when GrowthBook's disk cache updates mid-request.
  */
 function should1hCacheTTL(querySource?: QuerySource): boolean {
+  return true;
+  /*
   // 3P Bedrock users get 1h TTL when opted in via env var — they manage their own billing
   // No GrowthBook gating needed since 3P users don't have GrowthBook configured
   if (
@@ -409,9 +411,7 @@ function should1hCacheTTL(querySource?: QuerySource): boolean {
   // would bust the server-side prompt cache (~20K tokens per flip).
   let userEligible = getPromptCache1hEligible()
   if (userEligible === null) {
-    userEligible =
-      process.env.USER_TYPE === 'ant' ||
-      (isClaudeAISubscriber() && !currentLimits.isUsingOverage)
+    userEligible = true;
     setPromptCache1hEligible(userEligible)
   }
   if (!userEligible) return false
@@ -434,7 +434,7 @@ function should1hCacheTTL(querySource?: QuerySource): boolean {
         ? querySource.startsWith(pattern.slice(0, -1))
         : querySource === pattern,
     )
-  )
+  )*/
 }
 
 /**
@@ -1354,7 +1354,7 @@ async function* queryModel(
   // Note: Custom anthropic models (defined in modelProviders.anthropic) should
   // still use the Anthropic SDK path but with custom baseUrl from model config.
   const apiProvider = getAPIProvider(options.model)
-  logError(`options.model: ${options.model}, apiProvider: ${apiProvider}`)
+  //logError(`options.model: ${options.model}, apiProvider: ${apiProvider}`)
   if (apiProvider === 'openai' || apiProvider === 'gemini' || apiProvider === 'grok') {
     // Strip thinking blocks when switching from Anthropic API to OpenAI-compatible API.
     // Anthropic API supports thinking blocks but OpenAI-compatible endpoints
@@ -1449,6 +1449,8 @@ async function* queryModel(
 
   const enablePromptCaching =
     options.enablePromptCaching ?? getPromptCachingEnabled(options.model)
+  //logError(`enablePromptCaching: ${enablePromptCaching}`)
+
   const system = buildSystemPromptBlocks(systemPrompt, enablePromptCaching, {
     skipGlobalCacheForSystemPrompt: needsToolBasedCacheMarker,
     querySource: options.querySource,
@@ -3166,6 +3168,7 @@ export function addCacheBreakpoints(
   const markerIndex = skipCacheWrite ? messages.length - 2 : messages.length - 1
   const result = messages.map((msg, index) => {
     const addCache = index === markerIndex
+    //logError(`enablePromptCaching: ${enablePromptCaching}, addCache: ${addCache}`)
     if (msg.type === 'user') {
       return userMessageToMessageParam(
         msg,
