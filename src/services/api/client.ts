@@ -11,7 +11,7 @@ import {
   refreshGcpCredentialsIfNeeded,
 } from 'src/utils/auth.js'
 import { getUserAgent } from 'src/utils/http.js'
-import { getSmallFastModel } from 'src/utils/model/model.js'
+import { getCustomModelConfig, getSmallFastModel } from 'src/utils/model/model.js'
 import {
   getAPIProvider,
   isFirstPartyAnthropicBaseUrl,
@@ -128,6 +128,16 @@ export async function getAnthropicClient({
     defaultHeaders['x-anthropic-additional-protection'] = 'true'
   }
 
+  // Get custom model config early to add custom headers
+  const customModelConfig = model ? getCustomModelConfig(model) : undefined
+  if (customModelConfig?.generationConfig?.customHeaders) {
+    for (const [key, value] of Object.entries(
+      customModelConfig.generationConfig.customHeaders,
+    )) {
+      defaultHeaders[key] = value
+    }
+  }
+
   logForDebugging('[API:auth] OAuth token check starting')
   await checkAndRefreshOAuthTokenIfNeeded()
   logForDebugging('[API:auth] OAuth token check complete')
@@ -140,8 +150,10 @@ export async function getAnthropicClient({
 
   const ARGS = {
     defaultHeaders,
-    maxRetries,
-    timeout: parseInt(process.env.API_TIMEOUT_MS || String(600 * 1000), 10),
+    maxRetries: customModelConfig?.generationConfig?.maxRetries ?? maxRetries,
+    timeout:
+      customModelConfig?.generationConfig?.timeout ??
+      parseInt(process.env.API_TIMEOUT_MS || String(600 * 1000), 10),
     dangerouslyAllowBrowser: true,
     fetchOptions: getProxyFetchOptions({
       forAnthropicAPI: true,
@@ -299,7 +311,11 @@ export async function getAnthropicClient({
 
   // Determine authentication method based on available tokens
   const clientConfig: ConstructorParameters<typeof Anthropic>[0] = {
-    apiKey: isClaudeAISubscriber() ? null : apiKey || getAnthropicApiKey(),
+    apiKey: isClaudeAISubscriber()
+      ? null
+      : customModelConfig?.envKey
+        ? process.env[customModelConfig.envKey] || apiKey || getAnthropicApiKey()
+        : apiKey || getAnthropicApiKey(),
     authToken: isClaudeAISubscriber()
       ? getClaudeAIOAuthTokens()?.accessToken
       : undefined,
@@ -308,6 +324,8 @@ export async function getAnthropicClient({
     isEnvTruthy(process.env.USE_STAGING_OAUTH)
       ? { baseURL: getOauthConfig().BASE_API_URL }
       : {}),
+    // Use custom model baseUrl if configured
+    ...(customModelConfig?.baseUrl && { baseURL: customModelConfig.baseUrl }),
     ...ARGS,
     ...(isDebugToStdErr() && { logger: createStderrLogger() }),
   }

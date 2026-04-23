@@ -12,6 +12,7 @@ import {
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { getGlobalConfig } from '../config.js'
 import { isModelAllowed } from './modelAllowlist.js'
+import type { ModelProviders } from '../settings/types.js'
 
 export type ModelOption = {
   value: string
@@ -114,6 +115,28 @@ function getModelOptionsBase(): ModelOption[] {
   ]
 }
 
+function getCustomModelProvidersOptions(): ModelOption[] {
+  const settings = getSettings_DEPRECATED() || {}
+  const modelProviders = settings.modelProviders as ModelProviders | undefined
+  if (!modelProviders) return []
+
+  const options: ModelOption[] = []
+  for (const [_provider, models] of Object.entries(modelProviders)) {
+    for (const model of models) {
+      if (
+        !options.some(existing => existing.value === `custom:${model.id}`)
+      ) {
+        options.push({
+          value: `custom:${model.id}`,
+          label: model.name || model.id,
+          description: `Custom model (${model.id})`,
+        })
+      }
+    }
+  }
+  return options
+}
+
 export function getModelOptions(_fastMode = false): ModelOption[] {
   const options = getModelOptionsBase()
 
@@ -132,6 +155,13 @@ export function getModelOptions(_fastMode = false): ModelOption[] {
   }
 
   for (const opt of getGlobalConfig().additionalModelOptionsCache ?? []) {
+    if (!options.some(existing => existing.value === opt.value)) {
+      options.push(opt)
+    }
+  }
+
+  const customProviderOptions = getCustomModelProvidersOptions()
+  for (const opt of customProviderOptions) {
     if (!options.some(existing => existing.value === opt.value)) {
       options.push(opt)
     }

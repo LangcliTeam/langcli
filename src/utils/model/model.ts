@@ -1,4 +1,5 @@
 import { getMainLoopModelOverride } from '../../bootstrap/state.js'
+import type { ModelProviders } from '../settings/types.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import { capitalize } from '../stringUtils.js'
@@ -241,7 +242,9 @@ export function getMarketingNameForModel(modelId: string): string | undefined {
 }
 
 export function normalizeModelStringForAPI(model: string): string {
-  return model.replace(/\[(1|2)m\]/gi, '')
+  // Strip custom: prefix (user-defined models from settings.json modelProviders)
+  const withoutPrefix = model.startsWith('custom:') ? model.slice(7) : model
+  return withoutPrefix.replace(/\[(1|2)m\]/gi, '')
 }
 
 export function resolveSkillModelOverride(
@@ -257,4 +260,58 @@ export function isLegacyModelRemapEnabled(): boolean {
 
 function isModelAlias(model: string): boolean {
   return ['deepseek', 'moonshot', 'minimax'].includes(model.toLowerCase())
+}
+
+export type CustomModelConfig = {
+  id: string
+  name: string
+  envKey: string
+  baseUrl: string
+  generationConfig?: {
+    timeout?: number
+    maxRetries?: number
+    enableCacheControl?: boolean
+    contextWindowSize?: number
+    modalities?: { image?: boolean; text?: boolean }
+    customHeaders?: Record<string, string>
+    extra_body?: Record<string, unknown>
+    samplingParams?: {
+      temperature?: number
+      top_p?: number
+      top_k?: number
+      max_tokens?: number
+      presence_penalty?: number
+      frequency_penalty?: number
+    }
+  }
+}
+
+export function getCustomModelConfig(
+  modelId: string,
+): CustomModelConfig | undefined {
+  const settings = getSettings_DEPRECATED() || {}
+  const modelProviders = settings.modelProviders as ModelProviders | undefined
+  if (!modelProviders) return undefined
+
+  const actualModelId = isCustomModel(modelId)
+    ? getCustomModelId(modelId)
+    : modelId
+  if (!actualModelId) return undefined
+
+  for (const [_provider, models] of Object.entries(modelProviders)) {
+    const found = models.find(m => m.id === actualModelId)
+    if (found) {
+      return found
+    }
+  }
+  return undefined
+}
+
+export function isCustomModel(model: string): boolean {
+  return model.startsWith('custom:')
+}
+
+export function getCustomModelId(model: ModelName): string | undefined {
+  if (!isCustomModel(model)) return undefined
+  return model.slice(7)
 }

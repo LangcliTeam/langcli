@@ -1,5 +1,7 @@
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../../services/analytics/index.js'
 import { getInitialSettings } from '../settings/settings.js'
+import type { ModelProviders } from '../settings/types.js'
+import { isCustomModel } from './model.js'
 import { isEnvTruthy } from '../envUtils.js'
 
 export type APIProvider =
@@ -11,7 +13,30 @@ export type APIProvider =
   | 'gemini'
   | 'grok'
 
-export function getAPIProvider(): APIProvider {
+function getCustomModelProvider(model?: string): { provider: APIProvider; useAnthropicClient: boolean } | undefined {
+  if (!model || !isCustomModel(model)) return undefined
+  const settings = getInitialSettings()
+  const modelProviders = settings.modelProviders as ModelProviders | undefined
+  if (!modelProviders) return undefined
+
+  const customId = model.slice(7)
+  for (const [providerKey, models] of Object.entries(modelProviders)) {
+    if (models.some(m => m.id === customId)) {
+      // For anthropic custom models, we still use Anthropic SDK (firstParty code path)
+      // but with custom baseUrl from the model config
+      if (providerKey === 'anthropic') {
+        return { provider: 'firstParty', useAnthropicClient: true }
+      }
+      return { provider: providerKey as APIProvider, useAnthropicClient: false }
+    }
+  }
+  return undefined
+}
+
+export function getAPIProvider(model?: string): APIProvider {
+  const customModelInfo = getCustomModelProvider(model)
+  if (customModelInfo) return customModelInfo.provider
+
   const modelType = getInitialSettings().modelType
   if (modelType === 'openai') return 'openai'
   if (modelType === 'gemini') return 'gemini'
@@ -28,8 +53,8 @@ export function getAPIProvider(): APIProvider {
   return 'firstParty'
 }
 
-export function getAPIProviderForStatsig(): AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS {
-  return getAPIProvider() as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
+export function getAPIProviderForStatsig(model?: string): AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS {
+  return getAPIProvider(model) as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
 }
 
 /**

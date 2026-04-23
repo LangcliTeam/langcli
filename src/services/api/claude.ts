@@ -84,6 +84,7 @@ import {
   stripToolReferenceBlocksFromUserMessage,
 } from '../../utils/messages.js'
 import {
+  getCustomModelConfig,
   getDefaultOpusModel,
   getDefaultSonnetModel,
   getSmallFastModel,
@@ -273,7 +274,10 @@ type JsonArray = JsonValue[]
  * @param betaHeaders - An array of beta headers to include in the request.
  * @returns A JSON object representing the extra body parameters.
  */
-export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
+export function getExtraBodyParams(
+  betaHeaders?: string[],
+  model?: string,
+): JsonObject {
   // Parse user's extra body parameters first
   const extraBodyStr = process.env.CLAUDE_CODE_EXTRA_BODY
   let result: JsonObject = {}
@@ -299,6 +303,14 @@ export function getExtraBodyParams(betaHeaders?: string[]): JsonObject {
         `Error parsing CLAUDE_CODE_EXTRA_BODY: ${errorMessage(error)}`,
         { level: 'error' },
       )
+    }
+  }
+
+  // Add custom model extra_body if configured
+  if (model) {
+    const customConfig = getCustomModelConfig(model)
+    if (customConfig?.generationConfig?.extra_body) {
+      result = { ...result, ...(customConfig.generationConfig.extra_body as JsonObject) }
     }
   }
 
@@ -549,7 +561,7 @@ export async function verifyApiKey(
             temperature: 1,
             ...(betas.length > 0 && { betas }),
             metadata: getAPIMetadata(),
-            ...getExtraBodyParams(),
+            ...getExtraBodyParams(undefined, model),
           })
           return true
         },
@@ -1335,30 +1347,36 @@ async function* queryModel(
   // OpenAI-compatible provider: delegate to the OpenAI adapter layer
   // after shared preprocessing (message normalization, tool filtering,
   // media stripping) but before Anthropic-specific logic (betas, thinking, caching).
-  if (getAPIProvider() === 'openai') {
-    const { queryModelOpenAI } = await import('./openai/index.js')
-    yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options)
-    return
+  // Note: Custom anthropic models (defined in modelProviders.anthropic) should
+  // still use the Anthropic SDK path but with custom baseUrl from model config.
+  const apiProvider = getAPIProvider(options.model)
+  if (apiProvider === 'openai' || apiProvider === 'gemini' || apiProvider === 'grok') {
+    if (apiProvider === 'openai') {
+      const { queryModelOpenAI } = await import('./openai/index.js')
+      yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options)
+      return
+    }
+    if (apiProvider === 'gemini') {
+      const { queryModelGemini } = await import('./gemini/index.js')
+      yield* queryModelGemini(
+        messagesForAPI,
+        systemPrompt,
+        filteredTools,
+        signal,
+        options,
+        thinkingConfig,
+      )
+      return
+    }
+    if (apiProvider === 'grok') {
+      const { queryModelGrok } = await import('./grok/index.js')
+      yield* queryModelGrok(messagesForAPI, systemPrompt, filteredTools, signal, options)
+      return
+    }
   }
 
-  if (getAPIProvider() === 'gemini') {
-    const { queryModelGemini } = await import('./gemini/index.js')
-    yield* queryModelGemini(
-      messagesForAPI,
-      systemPrompt,
-      filteredTools,
-      signal,
-      options,
-      thinkingConfig,
-    )
-    return
-  }
-
-  if (getAPIProvider() === 'grok') {
-    const { queryModelGrok } = await import('./grok/index.js')
-    yield* queryModelGrok(messagesForAPI, systemPrompt, filteredTools, signal, options)
-    return
-  }
+  // For 'firstParty' (including custom anthropic models), continue with Anthropic SDK
+  // The getAnthropicClient() call will use custom baseUrl from modelProviders config
 
   // Instrumentation: Track message count after normalization
   logEvent('tengu_api_after_normalize', {
@@ -1527,7 +1545,7 @@ async function* queryModel(
       isUsingOverage: currentLimits.isUsingOverage ?? false,
       cachedMCEnabled: cacheEditingHeaderLatched,
       effortValue: effort,
-      extraBodyParams: getExtraBodyParams(),
+      extraBodyParams: getExtraBodyParams(undefined, options.model),
     })
   }
 
@@ -3444,6 +3462,14 @@ function isMaxTokensCapEnabled(): boolean {
 }
 
 export function getMaxOutputTokensForModel(model: string): number {
+  const customConfig = getCustomModelConfig(model)
+  if (
+    customConfig?.generationConfig?.samplingParams?.max_tokens &&
+    customConfig.generationConfig.samplingParams.max_tokens > 0
+  ) {
+    return customConfig.generationConfig.samplingParams.max_tokens
+  }
+
   const maxOutputTokens = getModelMaxOutputTokens(model)
 
   // Slot-reservation cap: drop default to 8k for all models. BQ p99 output

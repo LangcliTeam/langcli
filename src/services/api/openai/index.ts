@@ -43,6 +43,7 @@ import {
   isDeferredTool,
   TOOL_SEARCH_TOOL_NAME,
 } from '../../../tools/ToolSearchTool/prompt.js'
+//import { logError } from 'src/utils/log.js'
 
 /**
  * Assemble the final AssistantMessage (and optional max_tokens error) from
@@ -221,15 +222,17 @@ export async function* queryModelOpenAI(
       maxRetries: 0,
       fetchOverride: options.fetchOverride as unknown as typeof fetch,
       source: options.querySource,
+      model: options.model,
     })
 
     logForDebugging(
-      `[OpenAI] Calling model=${openaiModel}, messages=${openaiMessages.length}, tools=${openaiTools.length}, thinking=${enableThinking}`,
+      `[OpenAI] Request body model=${openaiModel}, max_tokens=${maxTokens}, baseURL=${(client as any).baseURL || 'default'}`,
     )
 
-    // 12. Call OpenAI API with streaming
+    // 12. Build request body
     const requestBody = buildOpenAIRequestBody({
       model: openaiModel,
+      originalModel: options.model,
       messages: openaiMessages,
       tools: openaiTools,
       toolChoice: openaiToolChoice,

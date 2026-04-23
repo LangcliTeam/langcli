@@ -6,6 +6,7 @@
 import type {
   ChatCompletionCreateParamsStreaming,
 } from 'openai/resources/chat/completions/completions.mjs'
+import { getCustomModelConfig, getCustomModelId, isCustomModel } from '../../../utils/model/model.js'
 import { isEnvTruthy, isEnvDefinedFalsy } from '../../../utils/envUtils.js'
 
 /**
@@ -63,6 +64,7 @@ export function resolveOpenAIMaxTokens(
  */
 export function buildOpenAIRequestBody(params: {
   model: string
+  originalModel?: string
   messages: any[]
   tools: any[]
   toolChoice: any
@@ -74,9 +76,23 @@ export function buildOpenAIRequestBody(params: {
   enable_thinking?: boolean
   chat_template_kwargs?: { thinking: boolean }
 } {
-  const { model, messages, tools, toolChoice, enableThinking, maxTokens, temperatureOverride } = params
+  const { model, originalModel, messages, tools, toolChoice, enableThinking, maxTokens, temperatureOverride } = params
+
+  const modelForConfig = originalModel ?? model
+  const customConfig = isCustomModel(modelForConfig) ? getCustomModelConfig(modelForConfig) : undefined
+  const samplingParams = customConfig?.generationConfig?.samplingParams
+
+  const temperature = temperatureOverride ?? samplingParams?.temperature
+  const topP = samplingParams?.top_p
+  const presencePenalty = samplingParams?.presence_penalty
+  const frequencyPenalty = samplingParams?.frequency_penalty
+
+  // Defensive: strip custom: prefix if present (resolveOpenAIModel should have
+  // already done this, but the compiled build sometimes fails to do so)
+  const apiModel = model.startsWith('custom:') ? model.slice(7) : model
+
   return {
-    model,
+    model: apiModel,
     messages,
     max_tokens: maxTokens,
     ...(tools.length > 0 && {
@@ -96,8 +112,12 @@ export function buildOpenAIRequestBody(params: {
     }),
     // Only send temperature when thinking mode is off (DeepSeek ignores it anyway,
     // but other providers may respect it)
-    ...(!enableThinking && temperatureOverride !== undefined && {
-      temperature: temperatureOverride,
+    ...(!enableThinking && temperature !== undefined && {
+      temperature,
     }),
+    ...(topP !== undefined && { top_p: topP }),
+    ...(presencePenalty !== undefined && { presence_penalty: presencePenalty }),
+    ...(frequencyPenalty !== undefined && { frequency_penalty: frequencyPenalty }),
+    ...(customConfig?.generationConfig?.extra_body && customConfig.generationConfig.extra_body),
   }
 }
