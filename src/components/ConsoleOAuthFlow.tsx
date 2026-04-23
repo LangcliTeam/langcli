@@ -466,7 +466,7 @@ function OAuthStatusMessage({
       return (
         <Box flexDirection="column" gap={1} marginTop={1}>
           <Text bold={true}>{startingMessage || 'Welcome to Langcli'}</Text>
-          <Text>Please input langRouter api-key and press enter to continue:</Text>
+          <Text>Please input langrouter.ai api-key and press enter to continue:</Text>
           <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1}>
             <TextInput
               value={apiKey}
