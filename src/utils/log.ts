@@ -349,6 +349,13 @@ export function captureAPIRequest(
   // dumpPrompts.ts already holds 5 full request bodies for ants, so this is
   // not a new retention class.
   setLastAPIRequestMessages(process.env.USER_TYPE === 'ant' ? messages : null)
+
+  /*
+  if (messages) {
+      for (const ele of messages) {
+        logError(JSON.stringify(ele))
+      }
+  }*/
 }
 
 /**

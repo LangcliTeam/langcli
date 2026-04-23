@@ -81,6 +81,8 @@ import {
   normalizeMessagesForAPI,
   stripAdvisorBlocks,
   stripCallerFieldFromAssistantMessage,
+  stripThinkingBlocks,
+  stripThinkingBlocksFromAssistantMessage,
   stripToolReferenceBlocksFromUserMessage,
 } from '../../utils/messages.js'
 import {
@@ -682,6 +684,8 @@ export function assistantMessageToMessageParam(
         : message.message!.content!.map(stripGeminiProviderMetadata) as BetaContentBlockParam[],
   }
 }
+
+
 
 function stripGeminiProviderMetadata<T extends BetaContentBlockParam | string>(
   contentBlock: T,
@@ -1350,7 +1354,15 @@ async function* queryModel(
   // Note: Custom anthropic models (defined in modelProviders.anthropic) should
   // still use the Anthropic SDK path but with custom baseUrl from model config.
   const apiProvider = getAPIProvider(options.model)
+  logError(`options.model: ${options.model}, apiProvider: ${apiProvider}`)
   if (apiProvider === 'openai' || apiProvider === 'gemini' || apiProvider === 'grok') {
+    // Strip thinking blocks when switching from Anthropic API to OpenAI-compatible API.
+    // Anthropic API supports thinking blocks but OpenAI-compatible endpoints
+    // don't (unless enableThinking is explicitly set for DeepSeek-style reasoning).
+    // This prevents 400 errors like "Expected string, received array" when the target
+    // provider rejects thinking content blocks.
+    messagesForAPI = stripThinkingBlocks(messagesForAPI)
+
     if (apiProvider === 'openai') {
       const { queryModelOpenAI } = await import('./openai/index.js')
       yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options)
@@ -3162,8 +3174,9 @@ export function addCacheBreakpoints(
         querySource,
       )
     }
+    const tmpMsg = stripThinkingBlocksFromAssistantMessage(msg);
     return assistantMessageToMessageParam(
-      msg,
+      tmpMsg,
       addCache,
       enablePromptCaching,
       querySource,

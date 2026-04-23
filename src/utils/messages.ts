@@ -1755,7 +1755,7 @@ export function stripToolReferenceBlocksFromUserMessage(
  * tool inputs (that's done by normalizeToolInputForAPI in normalizeMessagesForAPI).
  * This is intentional: this helper is used for model-specific post-processing
  * AFTER normalizeMessagesForAPI has already run, so inputs are already normalized.
- */
+*/
 export function stripCallerFieldFromAssistantMessage(
   message: AssistantMessage,
 ): AssistantMessage {
@@ -1778,7 +1778,6 @@ export function stripCallerFieldFromAssistantMessage(
           return block
         }
         const toolUse = block as ToolUseBlock
-        // Explicitly construct with only standard API fields
         return {
           type: 'tool_use' as const,
           id: toolUse.id,
@@ -1788,6 +1787,36 @@ export function stripCallerFieldFromAssistantMessage(
       }),
     },
   }
+}
+
+export function stripThinkingBlocksFromAssistantMessage(
+  message: AssistantMessage,
+): AssistantMessage {
+  const contentArr = Array.isArray(message.message.content) ? message.message.content : []
+  const filteredContent = contentArr.filter(
+    block => typeof block === 'string' || (block.type !== 'thinking' && block.type !== 'redacted_thinking'),
+  )
+
+  if (filteredContent.length === contentArr.length) {
+    return message
+  }
+
+  return {
+    ...message,
+    message: {
+      ...message.message,
+      content: filteredContent.length > 0 ? filteredContent : [{ type: 'text' as const, text: '', citations: [] }],
+    },
+  }
+}
+
+export function stripThinkingBlocks(messages: (UserMessage | AssistantMessage)[]): (UserMessage | AssistantMessage)[] {
+  return messages.map(msg => {
+    if (msg.type !== 'assistant') {
+      return msg
+    }
+    return stripThinkingBlocksFromAssistantMessage(msg as AssistantMessage)
+  })
 }
 
 /**
