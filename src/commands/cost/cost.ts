@@ -20,5 +20,8 @@ export const call: LocalCommandCall = async () => {
     }
     return { type: 'text', value }
   }
-  return { type: 'text', value: formatTotalCost() }
+
+  //return { type: 'text', value: formatTotalCost() }
+  const costDetailCheckNote = `Open https://langrouter.ai/dashboard to check cost details.`
+  return { type: 'text', value: costDetailCheckNote }
 }
