@@ -5,8 +5,8 @@ import { isModelAllowed } from './modelAllowlist.js'
 import { capitalize } from '../stringUtils.js'
 import {
   LANGROUTER_AUTO_CONFIG,
-  DEEPSEEK_V3_2_CONFIG,
-  DEEPSEEK_V3_2_THINK_CONFIG,
+  DEEPSEEK_V4_FLASH_CONFIG,
+  DEEPSEEK_V4_PRO_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
@@ -76,7 +76,7 @@ export function getDefaultSonnetModel(): ModelName {
 }
 
 export function getDefaultHaikuModel(): ModelName {
-  return DEEPSEEK_V3_2_CONFIG
+  return DEEPSEEK_V4_FLASH_CONFIG
 }
 
 export function getDefaultFreeModel(): ModelName {
@@ -94,7 +94,7 @@ export function getDefaultMainLoopModel(): ModelName {
 export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   const name = fullModelName.toLowerCase()
   if (name.includes('deepseek')) {
-    return 'deepseek-v3-2'
+    return 'deepseek-v4-flash'
   }
   if (name.includes('kimi-k2.6')) {
     return 'kimi-k2.6'
@@ -124,7 +124,7 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
 export function getClaudeAiUserDefaultModelDescription(
   _fastMode = false,
 ): string {
-  return 'DeepSeek V3.2 · Best for everyday tasks'
+  return 'DeepSeek V4 flash · Best for everyday tasks'
 }
 
 export function renderDefaultModelSetting(
@@ -149,11 +149,11 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
     return 'LangRouter Auto'
   }
 
-  if (model === 'deepseek-v3.2') {
-    return 'DeepSeek V3.2'
+  if (model === 'deepseek-v4-flash') {
+    return 'DeepSeek V4 flash'
   }
-  if (model === 'deepseek-v3.2-think') {
-    return 'DeepSeek V3.2 Think'
+  if (model === 'deepseek-v4-pro') {
+    return 'DeepSeek V4 pro'
   }
   if (model === 'kimi-k2.5') {
     return 'Kimi K2.5'
@@ -200,11 +200,11 @@ export function parseUserSpecifiedModel(
   if (modelInputTrimmed === 'langrouter/auto') {
     return LANGROUTER_AUTO_CONFIG
   }
-  if (modelInputTrimmed === 'deepseek-v3.2') {
-    return DEEPSEEK_V3_2_CONFIG
+  if (modelInputTrimmed === 'deepseek-v4-flash') {
+    return DEEPSEEK_V4_FLASH_CONFIG
   }
-  if (modelInputTrimmed === 'deepseek-v3.2-think') {
-    return DEEPSEEK_V3_2_THINK_CONFIG
+  if (modelInputTrimmed === 'deepseek-v4-pro') {
+    return DEEPSEEK_V4_PRO_CONFIG
   }
   if (modelInputTrimmed === 'kimi-k2.5') {
     return MOONSHOT_KIMI_K2_5_CONFIG

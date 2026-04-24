@@ -201,13 +201,16 @@ export function getModelMaxOutputTokens(model: string): {
     upperLimit = MAX_OUTPUT_TOKENS_UPPER_LIMIT
   }
 
+  /*
   if (model === "deepseek-v3.2") {
     defaultTokens = 4_096
     upperLimit = 8_192
   } else if (model === "deepseek-v3.2-think") {
     defaultTokens = 32768
     upperLimit = 65536
-  } else if (model === "langrouter/auto") {
+  } else
+   */
+  if (model === "langrouter/auto") {
     defaultTokens = 4_096
     upperLimit = 8_192
   }

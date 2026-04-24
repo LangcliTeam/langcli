@@ -28,7 +28,7 @@ export function isOpenAIThinkingEnabled(model: string): boolean {
   if (isEnvTruthy(process.env.OPENAI_ENABLE_THINKING)) return true
   // Auto-detect from model name (deepseek-reasoner and DeepSeek-V3.2 support thinking mode)
   const modelLower = model.toLowerCase()
-  return modelLower.includes('deepseek-reasoner') || modelLower.includes('deepseek-v3.2')
+  return modelLower.includes('deepseek-v4') || modelLower.includes('deepseek-v4')
 }
 
 /**

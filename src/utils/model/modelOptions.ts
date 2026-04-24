@@ -1,7 +1,7 @@
 import {
   LANGROUTER_AUTO_CONFIG,
-  DEEPSEEK_V3_2_CONFIG,
-  DEEPSEEK_V3_2_THINK_CONFIG,
+  DEEPSEEK_V4_FLASH_CONFIG,
+  DEEPSEEK_V4_PRO_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
   MINIMAX_M2_5_CONFIG,
   CLAUDE_OPUS_4_6_CONFIG,
@@ -31,19 +31,19 @@ export function getDefaultOptionForUser(): ModelOption {
 
 function getDeepSeekOption(): ModelOption {
   return {
-    value: DEEPSEEK_V3_2_CONFIG,
-    label: 'DeepSeek V3.2',
-    description: 'DeepSeek V3.2 · Best for everyday tasks',
-    descriptionForModel: 'DeepSeek V3.2 - best for everyday tasks',
+    value: DEEPSEEK_V4_FLASH_CONFIG,
+    label: 'DeepSeek V4 flash',
+    description: 'DeepSeek V4 flash · Best for everyday tasks',
+    descriptionForModel: 'DeepSeek V4 flash - best for everyday tasks',
   }
 }
 
 function getDeepSeekThinkOption(): ModelOption {
   return {
-    value: DEEPSEEK_V3_2_THINK_CONFIG,
-    label: 'DeepSeek V3.2 Think',
-    description: 'DeepSeek V3.2 Think · Enhanced reasoning',
-    descriptionForModel: 'DeepSeek V3.2 Think - enhanced reasoning',
+    value: DEEPSEEK_V4_PRO_CONFIG,
+    label: 'DeepSeek V4 pro',
+    description: 'DeepSeek V4 pro · Enhanced reasoning',
+    descriptionForModel: 'DeepSeek V4 pro - enhanced reasoning',
   }
 }
 

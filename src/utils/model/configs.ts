@@ -5,10 +5,9 @@ export type ModelConfig = string
 export const LANGROUTER_AUTO_CONFIG = 'langrouter/auto' as const satisfies ModelConfig
 export const LANGROUTER_AUTO_FREE_CONFIG = 'langrouter/auto-free' as const satisfies ModelConfig
 
-export const DEEPSEEK_V3_2_CONFIG =
-  'deepseek-v3.2' as const satisfies ModelConfig
+export const DEEPSEEK_V4_FLASH_CONFIG = 'deepseek-v4-flash' as const satisfies ModelConfig
 
-export const DEEPSEEK_V3_2_THINK_CONFIG = 'deepseek-v3.2-think' as const satisfies ModelConfig
+export const DEEPSEEK_V4_PRO_CONFIG = 'deepseek-v4-pro' as const satisfies ModelConfig
 
 export const MOONSHOT_KIMI_K2_5_CONFIG = 'kimi-k2.5' as const satisfies ModelConfig
 
@@ -25,8 +24,8 @@ export const MOONSHOT_KIMI_K2_6_CONFIG = 'kimi-k2.6' as const satisfies ModelCon
 export const ALL_MODEL_CONFIGS = {
   langrouterAuto: LANGROUTER_AUTO_CONFIG,
   langrouterAutoFree: LANGROUTER_AUTO_FREE_CONFIG,
-  deepseek: DEEPSEEK_V3_2_CONFIG,
-  deepseekThink: DEEPSEEK_V3_2_THINK_CONFIG,
+  deepseekFlash: DEEPSEEK_V4_FLASH_CONFIG,
+  deepseekThink: DEEPSEEK_V4_PRO_CONFIG,
   moonshot: MOONSHOT_KIMI_K2_5_CONFIG,
   minimax: MINIMAX_M2_5_CONFIG,
   claudeOpus: CLAUDE_OPUS_4_6_CONFIG,
@@ -50,3 +49,13 @@ export const CANONICAL_ID_TO_KEY: Record<CanonicalModelId, ModelKey> =
       ([key, cfg]) => [cfg, key],
     ),
   ) as Record<CanonicalModelId, ModelKey>
+
+export const CANONICAL_ID_TO_PROTOCOL: Record<CanonicalModelId, string> = 
+  Object.fromEntries(
+    (Object.entries(ALL_MODEL_CONFIGS) as [ModelKey, ModelConfig][]).map(
+      ([key, cfg]) => {
+        const protocol = cfg.includes("claude") ? "anthropic" : "openai"
+        return [cfg, protocol]
+      },
+    ),
+  ) as Record<CanonicalModelId, string>
