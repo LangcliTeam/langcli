@@ -50,7 +50,7 @@ export const CANONICAL_ID_TO_KEY: Record<CanonicalModelId, ModelKey> =
     ),
   ) as Record<CanonicalModelId, ModelKey>
 
-export const CANONICAL_ID_TO_PROTOCOL: Record<CanonicalModelId, string> = 
+export const CANONICAL_ID_TO_PROTOCOL: Record<CanonicalModelId, string> =
   Object.fromEntries(
     (Object.entries(ALL_MODEL_CONFIGS) as [ModelKey, ModelConfig][]).map(
       ([key, cfg]) => {
@@ -59,3 +59,11 @@ export const CANONICAL_ID_TO_PROTOCOL: Record<CanonicalModelId, string> =
       },
     ),
   ) as Record<CanonicalModelId, string>
+
+/**
+ * Check if a model is a built-in model that uses the OpenAI-compatible protocol.
+ */
+export function isBuiltInOpenAIModel(model: string): boolean {
+  return model in CANONICAL_ID_TO_PROTOCOL &&
+    CANONICAL_ID_TO_PROTOCOL[model as keyof typeof CANONICAL_ID_TO_PROTOCOL] === 'openai'
+}

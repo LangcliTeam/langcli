@@ -1361,9 +1361,10 @@ async function* queryModel(
     // don't (unless enableThinking is explicitly set for DeepSeek-style reasoning).
     // This prevents 400 errors like "Expected string, received array" when the target
     // provider rejects thinking content blocks.
-    messagesForAPI = stripThinkingBlocks(messagesForAPI)
+    //messagesForAPI = stripThinkingBlocks(messagesForAPI)
 
     if (apiProvider === 'openai') {
+      //logError(`${options.model} running at openai logic...`)
       const { queryModelOpenAI } = await import('./openai/index.js')
       yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options)
       return
@@ -1386,6 +1387,7 @@ async function* queryModel(
       return
     }
   }
+  //logError(`${options.model} running at anthropic logic...`)
 
   // For 'firstParty' (including custom anthropic models), continue with Anthropic SDK
   // The getAnthropicClient() call will use custom baseUrl from modelProviders config

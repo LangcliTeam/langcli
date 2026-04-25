@@ -3,6 +3,7 @@ import { getInitialSettings } from '../settings/settings.js'
 import type { ModelProviders } from '../settings/types.js'
 import { isCustomModel } from './model.js'
 import { isEnvTruthy } from '../envUtils.js'
+import { CANONICAL_ID_TO_PROTOCOL } from './configs.js'
 
 export type APIProvider =
   | 'firstParty'
@@ -36,6 +37,15 @@ function getCustomModelProvider(model?: string): { provider: APIProvider; useAnt
 export function getAPIProvider(model?: string): APIProvider {
   const customModelInfo = getCustomModelProvider(model)
   if (customModelInfo) return customModelInfo.provider
+
+  // For built-in models defined in configs.ts, route according to CANONICAL_ID_TO_PROTOCOL.
+  // Anthropic-protocol models use the firstParty code path; OpenAI-protocol models delegate
+  // to the OpenAI adapter in claude.ts.
+  if (model && model in CANONICAL_ID_TO_PROTOCOL) {
+    const protocol = CANONICAL_ID_TO_PROTOCOL[model as keyof typeof CANONICAL_ID_TO_PROTOCOL]
+    if (protocol === 'openai') return 'openai'
+    if (protocol === 'anthropic') return 'firstParty'
+  }
 
   const modelType = getInitialSettings().modelType
   if (modelType === 'openai') return 'openai'

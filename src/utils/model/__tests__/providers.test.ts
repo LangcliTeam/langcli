@@ -1,11 +1,17 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import { getAPIProvider, isFirstPartyAnthropicBaseUrl } from "../providers";
+import {
+  DEEPSEEK_V4_FLASH_CONFIG,
+  CLAUDE_OPUS_4_6_CONFIG,
+  MOONSHOT_KIMI_K2_5_CONFIG,
+} from "../configs";
 
 describe("getAPIProvider", () => {
   const envKeys = [
     "CLAUDE_CODE_USE_BEDROCK",
     "CLAUDE_CODE_USE_VERTEX",
     "CLAUDE_CODE_USE_FOUNDRY",
+    "CLAUDE_CODE_USE_OPENAI",
   ] as const;
   const savedEnv: Record<string, string | undefined> = {};
 
@@ -71,6 +77,25 @@ describe("getAPIProvider", () => {
   test('empty string is not truthy', () => {
     process.env.CLAUDE_CODE_USE_BEDROCK = "";
     expect(getAPIProvider()).toBe("firstParty");
+  });
+
+  test('returns "openai" for built-in models with openai protocol', () => {
+    delete process.env.CLAUDE_CODE_USE_OPENAI;
+    expect(getAPIProvider(DEEPSEEK_V4_FLASH_CONFIG)).toBe("openai");
+    expect(getAPIProvider(MOONSHOT_KIMI_K2_5_CONFIG)).toBe("openai");
+  });
+
+  test('returns "firstParty" for built-in models with anthropic protocol', () => {
+    delete process.env.CLAUDE_CODE_USE_OPENAI;
+    expect(getAPIProvider(CLAUDE_OPUS_4_6_CONFIG)).toBe("firstParty");
+  });
+
+  test('CANONICAL_ID_TO_PROTOCOL takes precedence over env vars for built-in models', () => {
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    // claude-opus-4-6 is anthropic protocol, so it should still return firstParty
+    expect(getAPIProvider(CLAUDE_OPUS_4_6_CONFIG)).toBe("firstParty");
+    // deepseek-v4-flash is openai protocol, so it should return openai (matches env)
+    expect(getAPIProvider(DEEPSEEK_V4_FLASH_CONFIG)).toBe("openai");
   });
 });
 
