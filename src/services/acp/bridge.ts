@@ -887,20 +887,22 @@ function assistantMessageToAcpNotifications(
     | undefined
   if (!content) return []
 
-  // If content is a string, treat as text
+  // If content is a string, treat as text. Skip it — text has already
+  // been delivered via stream_event content_block_delta notifications
+  // (includePartialMessages is always true in ACP mode).
   if (typeof content === 'string') {
-    return [
-      {
-        sessionId,
-        update: {
-          sessionUpdate: 'agent_message_chunk',
-          content: { type: 'text', text: content },
-        },
-      },
-    ]
+    return []
   }
 
-  return toAcpNotifications(content, 'assistant', sessionId, toolUseCache, conn, undefined, options)
+  // Filter out text and thinking blocks — they were already delivered
+  // via stream_event content_block_delta notifications (includePartialMessages
+  // is always true in ACP mode). Without this, the full content from the
+  // assistant message duplicates the incremental text already sent, causing
+  // response text to appear twice for models that output thinking content.
+  const nonStreamedContent = content.filter(
+    (b: Record<string, unknown>) => b.type !== 'text' && b.type !== 'thinking',
+  )
+  return toAcpNotifications(nonStreamedContent, 'assistant', sessionId, toolUseCache, conn, undefined, options)
 }
 
 // ── Stream event conversion ───────────────────────────────────────

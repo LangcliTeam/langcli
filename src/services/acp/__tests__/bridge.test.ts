@@ -709,7 +709,7 @@ describe('forwardSessionUpdates', () => {
     expect(result.stopReason).toBe('cancelled')
   })
 
-  test('forwards assistant text message as agent_message_chunk', async () => {
+  test('does not forward text from assistant messages (already streamed via deltas)', async () => {
     const conn = makeConn()
     const msgs: SDKMessage[] = [
       {
@@ -728,18 +728,17 @@ describe('forwardSessionUpdates', () => {
       {},
     )
     const calls = (conn.sessionUpdate as ReturnType<typeof mock>).mock.calls
-    expect(calls.length).toBeGreaterThanOrEqual(1)
-    expect(calls[0][0]).toMatchObject({
-      sessionId: 's1',
-      update: {
-        sessionUpdate: 'agent_message_chunk',
-        content: { type: 'text', text: 'Hello!' },
-      },
-    })
+    // Text blocks from assistant messages are filtered out — they were
+    // already delivered via stream_event content_block_delta notifications.
+    // No agent_message_chunk or agent_thought_chunk should be sent.
+    for (const call of calls) {
+      const update = call[0]?.update?.sessionUpdate as string | undefined
+      expect(update === 'agent_message_chunk' || update === 'agent_thought_chunk').toBe(false)
+    }
     expect(result.stopReason).toBe('end_turn')
   })
 
-  test('forwards thinking block as agent_thought_chunk', async () => {
+  test('does not forward thinking from assistant messages (already streamed via deltas)', async () => {
     const conn = makeConn()
     const msgs: SDKMessage[] = [
       {
@@ -758,9 +757,12 @@ describe('forwardSessionUpdates', () => {
       {},
     )
     const calls = (conn.sessionUpdate as ReturnType<typeof mock>).mock.calls
-    expect(calls[0][0].update).toMatchObject({
-      sessionUpdate: 'agent_thought_chunk',
-    })
+    // Thinking blocks from assistant messages are filtered out — they were
+    // already delivered via stream_event content_block_delta notifications.
+    for (const call of calls) {
+      const update = call[0]?.update?.sessionUpdate as string | undefined
+      expect(update === 'agent_thought_chunk' || update === 'agent_message_chunk').toBe(false)
+    }
   })
 
   test('forwards tool_use block as tool_call', async () => {
