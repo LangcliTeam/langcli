@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.17
+
+- Fix opus 4.6 thinking bug
+
 ## 0.1.16
 
 - Default open verbose mode(include thinking in messages stream)

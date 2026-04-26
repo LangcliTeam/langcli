@@ -3172,9 +3172,9 @@ export function addCacheBreakpoints(
         querySource,
       )
     }
-    //const tmpMsg = stripThinkingBlocksFromAssistantMessage(msg);
+    const tmpMsg = stripThinkingBlocksFromAssistantMessage(msg);
     return assistantMessageToMessageParam(
-      msg,
+      tmpMsg,
       addCache,
       enablePromptCaching,
       querySource,
