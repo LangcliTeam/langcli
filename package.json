@@ -1,6 +1,6 @@
 {
   "name": "langcli-com",
-  "version": "0.1.13",
+  "version": "0.1.16",
   "description": "Langcli - interactive AI coding assistant in the terminal",
   "type": "module",
   "author": "langcli <team@langcli.com>",
@@ -62,9 +62,11 @@
     "changeset-version": "changeset version",
     "changeset-publish": "bun run build && changeset publish"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@agentclientprotocol/sdk": "^0.19.0"
+  },
   "devDependencies": {
-    "openai": "^6.33.0",
+    "openai": "^6.34.0",
     "@alcalzone/ansi-tokenize": "^0.3.0",
     "@ant/model-provider": "workspace:*",
     "@ant/claude-for-chrome-mcp": "workspace:*",

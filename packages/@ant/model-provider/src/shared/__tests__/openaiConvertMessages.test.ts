@@ -21,26 +21,22 @@ function makeAssistantMsg(content: string | any[]): AssistantMessage {
 
 describe('anthropicMessagesToOpenAI', () => {
   test('converts system prompt to system message', () => {
-    const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('hello')],
-      ['You are helpful.'] as any,
-    )
+    const result = anthropicMessagesToOpenAI([makeUserMsg('hello')], [
+      'You are helpful.',
+    ] as any)
     expect(result[0]).toEqual({ role: 'system', content: 'You are helpful.' })
   })
 
   test('joins multiple system prompt strings', () => {
-    const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('hi')],
-      ['Part 1', 'Part 2'] as any,
-    )
+    const result = anthropicMessagesToOpenAI([makeUserMsg('hi')], [
+      'Part 1',
+      'Part 2',
+    ] as any)
     expect(result[0]).toEqual({ role: 'system', content: 'Part 1\n\nPart 2' })
   })
 
   test('skips empty system prompt', () => {
-    const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('hi')],
-      [] as any,
-    )
+    const result = anthropicMessagesToOpenAI([makeUserMsg('hi')], [] as any)
     expect(result[0].role).toBe('user')
   })
 
@@ -54,10 +50,12 @@ describe('anthropicMessagesToOpenAI', () => {
 
   test('converts user message with content array', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg([
-        { type: 'text', text: 'line 1' },
-        { type: 'text', text: 'line 2' },
-      ])],
+      [
+        makeUserMsg([
+          { type: 'text', text: 'line 1' },
+          { type: 'text', text: 'line 2' },
+        ]),
+      ],
       [] as any,
     )
     expect(result).toEqual([{ role: 'user', content: 'line 1\nline 2' }])
@@ -73,55 +71,67 @@ describe('anthropicMessagesToOpenAI', () => {
 
   test('converts assistant message with tool_use', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeAssistantMsg([
-        { type: 'text', text: 'Let me help.' },
-        {
-          type: 'tool_use' as const,
-          id: 'toolu_123',
-          name: 'bash',
-          input: { command: 'ls' },
-        },
-      ])],
+      [
+        makeAssistantMsg([
+          { type: 'text', text: 'Let me help.' },
+          {
+            type: 'tool_use' as const,
+            id: 'toolu_123',
+            name: 'bash',
+            input: { command: 'ls' },
+          },
+        ]),
+      ],
       [] as any,
     )
-    expect(result).toEqual([{
-      role: 'assistant',
-      content: 'Let me help.',
-      tool_calls: [{
-        id: 'toolu_123',
-        type: 'function',
-        function: { name: 'bash', arguments: '{"command":"ls"}' },
-      }],
-    }])
+    expect(result).toEqual([
+      {
+        role: 'assistant',
+        content: 'Let me help.',
+        tool_calls: [
+          {
+            id: 'toolu_123',
+            type: 'function',
+            function: { name: 'bash', arguments: '{"command":"ls"}' },
+          },
+        ],
+      },
+    ])
   })
 
   test('converts tool_result to tool message', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg([
-        {
-          type: 'tool_result' as const,
-          tool_use_id: 'toolu_123',
-          content: 'file1.txt\nfile2.txt',
-        },
-      ])],
+      [
+        makeUserMsg([
+          {
+            type: 'tool_result' as const,
+            tool_use_id: 'toolu_123',
+            content: 'file1.txt\nfile2.txt',
+          },
+        ]),
+      ],
       [] as any,
     )
-    expect(result).toEqual([{
-      role: 'tool',
-      tool_call_id: 'toolu_123',
-      content: 'file1.txt\nfile2.txt',
-    }])
+    expect(result).toEqual([
+      {
+        role: 'tool',
+        tool_call_id: 'toolu_123',
+        content: 'file1.txt\nfile2.txt',
+      },
+    ])
   })
 
-  test('strips thinking blocks', () => {
+  test('preserves thinking blocks as reasoning_content', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeAssistantMsg([
-        { type: 'thinking' as const, thinking: 'internal thoughts...' },
-        { type: 'text', text: 'visible response' },
-      ])],
+      [
+        makeAssistantMsg([
+          { type: 'thinking' as const, thinking: 'internal thoughts...' },
+          { type: 'text', text: 'visible response' },
+        ]),
+      ],
       [] as any,
     )
-    expect(result).toEqual([{ role: 'assistant', content: 'visible response' }])
+    expect(result).toEqual([{ role: 'assistant', content: 'visible response', reasoning_content: 'internal thoughts...' }] as any)
   })
 
   test('handles full conversation with tools', () => {
@@ -157,91 +167,105 @@ describe('anthropicMessagesToOpenAI', () => {
 
   test('converts base64 image to image_url', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg([
-        { type: 'text', text: 'what is this?' },
-        {
-          type: 'image' as const,
-          source: {
-            type: 'base64',
-            media_type: 'image/png',
-            data: 'iVBORw0KGgo=',
+      [
+        makeUserMsg([
+          { type: 'text', text: 'what is this?' },
+          {
+            type: 'image' as const,
+            source: {
+              type: 'base64',
+              media_type: 'image/png',
+              data: 'iVBORw0KGgo=',
+            },
           },
-        },
-      ])],
+        ]),
+      ],
       [] as any,
     )
-    expect(result).toEqual([{
-      role: 'user',
-      content: [
-        { type: 'text', text: 'what is this?' },
-        {
-          type: 'image_url',
-          image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' },
-        },
-      ],
-    }])
+    expect(result).toEqual([
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'what is this?' },
+          {
+            type: 'image_url',
+            image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' },
+          },
+        ],
+      },
+    ])
   })
 
   test('converts url image to image_url', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg([
-        {
-          type: 'image' as const,
-          source: {
-            type: 'url',
-            url: 'https://example.com/img.png',
+      [
+        makeUserMsg([
+          {
+            type: 'image' as const,
+            source: {
+              type: 'url',
+              url: 'https://example.com/img.png',
+            },
           },
-        },
-      ])],
+        ]),
+      ],
       [] as any,
     )
-    expect(result).toEqual([{
-      role: 'user',
-      content: [
-        {
-          type: 'image_url',
-          image_url: { url: 'https://example.com/img.png' },
-        },
-      ],
-    }])
+    expect(result).toEqual([
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image_url',
+            image_url: { url: 'https://example.com/img.png' },
+          },
+        ],
+      },
+    ])
   })
 
   test('converts image-only message without text', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg([
-        {
-          type: 'image' as const,
-          source: {
-            type: 'base64',
-            media_type: 'image/jpeg',
-            data: '/9j/4AAQ',
+      [
+        makeUserMsg([
+          {
+            type: 'image' as const,
+            source: {
+              type: 'base64',
+              media_type: 'image/jpeg',
+              data: '/9j/4AAQ',
+            },
           },
-        },
-      ])],
+        ]),
+      ],
       [] as any,
     )
-    expect(result).toEqual([{
-      role: 'user',
-      content: [
-        {
-          type: 'image_url',
-          image_url: { url: 'data:image/jpeg;base64,/9j/4AAQ' },
-        },
-      ],
-    }])
+    expect(result).toEqual([
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image_url',
+            image_url: { url: 'data:image/jpeg;base64,/9j/4AAQ' },
+          },
+        ],
+      },
+    ])
   })
 
   test('defaults to image/png when media_type is missing', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg([
-        {
-          type: 'image' as const,
-          source: {
-            type: 'base64',
-            data: 'ABC123',
+      [
+        makeUserMsg([
+          {
+            type: 'image' as const,
+            source: {
+              type: 'base64',
+              data: 'ABC123',
+            },
           },
-        },
-      ])],
+        ]),
+      ],
       [] as any,
     )
     expect((result[0].content as any[])[0].image_url.url).toBe(
@@ -253,10 +277,16 @@ describe('anthropicMessagesToOpenAI', () => {
 describe('DeepSeek thinking mode (enableThinking)', () => {
   test('preserves thinking block as reasoning_content when enabled', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('question'), makeAssistantMsg([
-        { type: 'thinking' as const, thinking: 'Let me reason about this...' },
-        { type: 'text', text: 'The answer is 42.' },
-      ])],
+      [
+        makeUserMsg('question'),
+        makeAssistantMsg([
+          {
+            type: 'thinking' as const,
+            thinking: 'Let me reason about this...',
+          },
+          { type: 'text', text: 'The answer is 42.' },
+        ]),
+      ],
       [] as any,
       { enableThinking: true },
     )
@@ -269,17 +299,19 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
     expect(assistant.reasoning_content).toBe('Let me reason about this...')
   })
 
-  test('drops thinking block when enableThinking is false (default)', () => {
+  test('preserves thinking block as reasoning_content even without enableThinking', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeAssistantMsg([
-        { type: 'thinking' as const, thinking: 'internal thoughts...' },
-        { type: 'text', text: 'visible response' },
-      ])],
+      [
+        makeAssistantMsg([
+          { type: 'thinking' as const, thinking: 'internal thoughts...' },
+          { type: 'text', text: 'visible response' },
+        ]),
+      ],
       [] as any,
     )
     const assistant = result[0] as any
     expect(assistant.content).toBe('visible response')
-    expect(assistant.reasoning_content).toBeUndefined()
+    expect(assistant.reasoning_content).toBe('internal thoughts...')
   })
 
   test('preserves reasoning_content with tool_calls in same turn', () => {
@@ -287,7 +319,10 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
       [
         makeUserMsg('what is the weather?'),
         makeAssistantMsg([
-          { type: 'thinking' as const, thinking: 'I need to call the weather tool.' },
+          {
+            type: 'thinking' as const,
+            thinking: 'I need to call the weather tool.',
+          },
           { type: 'text', text: '' },
           {
             type: 'tool_use' as const,
@@ -317,7 +352,7 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
     expect(assistant.tool_calls[0].function.name).toBe('get_weather')
   })
 
-  test('strips reasoning_content from previous turns', () => {
+  test('always preserves reasoning_content from all turns', () => {
     const result = anthropicMessagesToOpenAI(
       [
         // Turn 1: user → assistant (with thinking)
@@ -326,7 +361,8 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
           { type: 'thinking' as const, thinking: 'Turn 1 reasoning...' },
           { type: 'text', text: 'Turn 1 answer' },
         ]),
-        // Turn 2: new user message → previous reasoning should be stripped
+        // Turn 2: new user message → reasoning should still be preserved
+        // (DeepSeek requires reasoning_content to be passed back when tool calls are involved)
         makeUserMsg('question 2'),
         makeAssistantMsg([
           { type: 'thinking' as const, thinking: 'Turn 2 reasoning...' },
@@ -338,10 +374,9 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
     )
 
     const assistants = result.filter(m => m.role === 'assistant')
-    // Turn 1 assistant: reasoning should be stripped (previous turn)
-    expect((assistants[0] as any).reasoning_content).toBeUndefined()
+    // Both turns preserve reasoning_content (DeepSeek API requires it for tool calls)
+    expect((assistants[0] as any).reasoning_content).toBe('Turn 1 reasoning...')
     expect((assistants[0] as any).content).toBe('Turn 1 answer')
-    // Turn 2 assistant: reasoning should be preserved (current turn)
     expect((assistants[1] as any).reasoning_content).toBe('Turn 2 reasoning...')
     expect((assistants[1] as any).content).toBe('Turn 2 answer')
   })
@@ -399,18 +434,27 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
     const assistants = result.filter(m => m.role === 'assistant')
     expect(assistants.length).toBe(3)
     // All iterations within the same turn preserve reasoning
-    expect((assistants[0] as any).reasoning_content).toBe('I need the date first.')
-    expect((assistants[1] as any).reasoning_content).toBe('Now I can get the weather.')
-    expect((assistants[2] as any).reasoning_content).toBe('I have the info now.')
+    expect((assistants[0] as any).reasoning_content).toBe(
+      'I need the date first.',
+    )
+    expect((assistants[1] as any).reasoning_content).toBe(
+      'Now I can get the weather.',
+    )
+    expect((assistants[2] as any).reasoning_content).toBe(
+      'I have the info now.',
+    )
   })
 
   test('handles multiple thinking blocks in single assistant message', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('question'), makeAssistantMsg([
-        { type: 'thinking' as const, thinking: 'First thought.' },
-        { type: 'thinking' as const, thinking: 'Second thought.' },
-        { type: 'text', text: 'Final answer.' },
-      ])],
+      [
+        makeUserMsg('question'),
+        makeAssistantMsg([
+          { type: 'thinking' as const, thinking: 'First thought.' },
+          { type: 'thinking' as const, thinking: 'Second thought.' },
+          { type: 'text', text: 'Final answer.' },
+        ]),
+      ],
       [] as any,
       { enableThinking: true },
     )
@@ -420,10 +464,13 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
 
   test('skips empty thinking blocks', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('question'), makeAssistantMsg([
-        { type: 'thinking' as const, thinking: '' },
-        { type: 'text', text: 'Answer.' },
-      ])],
+      [
+        makeUserMsg('question'),
+        makeAssistantMsg([
+          { type: 'thinking' as const, thinking: '' },
+          { type: 'text', text: 'Answer.' },
+        ]),
+      ],
       [] as any,
       { enableThinking: true },
     )
@@ -481,15 +528,18 @@ describe('DeepSeek thinking mode (enableThinking)', () => {
 
   test('sets content to null when only thinking and tool_calls present', () => {
     const result = anthropicMessagesToOpenAI(
-      [makeUserMsg('question'), makeAssistantMsg([
-        { type: 'thinking' as const, thinking: 'Reasoning only.' },
-        {
-          type: 'tool_use' as const,
-          id: 'toolu_001',
-          name: 'bash',
-          input: { command: 'ls' },
-        },
-      ])],
+      [
+        makeUserMsg('question'),
+        makeAssistantMsg([
+          { type: 'thinking' as const, thinking: 'Reasoning only.' },
+          {
+            type: 'tool_use' as const,
+            id: 'toolu_001',
+            name: 'bash',
+            input: { command: 'ls' },
+          },
+        ]),
+      ],
       [] as any,
       { enableThinking: true },
     )

@@ -125,14 +125,12 @@ import {
   getPromptCache1hAllowlist,
   getPromptCache1hEligible,
   getSessionId,
-  getThinkingClearLatched,
   setAfkModeHeaderLatched,
   setCacheEditingHeaderLatched,
   setFastModeHeaderLatched,
   setLastMainRequestId,
   setPromptCache1hAllowlist,
   setPromptCache1hEligible,
-  setThinkingClearLatched,
 } from 'src/bootstrap/state.js'
 import {
   AFK_MODE_BETA_HEADER,
@@ -561,7 +559,7 @@ export async function verifyApiKey(
             max_tokens: 1,
             messages,
             temperature: 1,
-            ...(betas.length > 0 && { betas }),
+            ...(betas.length > 0 && { betas: betas.filter(Boolean) }),
             metadata: getAPIMetadata(),
             ...getExtraBodyParams(undefined, model),
           })
@@ -628,9 +626,9 @@ export function userMessageToMessageParam(
   // to addCacheBreakpoints share the same array and each splices in duplicate cache_edits.
   return {
     role: 'user',
-    content: Array.isArray(message.message.content)
-      ? [...message.message.content]
-      : message.message.content,
+    content: (Array.isArray(message.message!.content)
+      ? [...message.message!.content]
+      : message.message!.content) as import('@anthropic-ai/sdk/resources/beta/messages/messages.js').BetaContentBlockParam[],
   }
 }
 
@@ -684,8 +682,6 @@ export function assistantMessageToMessageParam(
         : message.message!.content!.map(stripGeminiProviderMetadata) as BetaContentBlockParam[],
   }
 }
-
-
 
 function stripGeminiProviderMetadata<T extends BetaContentBlockParam | string>(
   contentBlock: T,
@@ -1008,7 +1004,7 @@ export function stripExcessMediaItems(
 
   return messages.map(msg => {
     if (toRemove <= 0) return msg
-    const content = msg.message.content
+    const content = msg.message!.content
     if (!Array.isArray(content)) return msg
 
     const before = toRemove
@@ -1231,10 +1227,15 @@ async function* queryModel(
     cacheEditingBetaHeader = betas.CACHE_EDITING_BETA_HEADER
     const featureEnabled = isCachedMicrocompactEnabled()
     const modelSupported = isModelSupportedForCacheEditing(options.model)
-    cachedMCEnabled = featureEnabled && modelSupported
+    // cachedMC requires a non-empty beta header; the CACHE_EDITING_BETA_HEADER
+    // constant is '' in this fork (upstream hasn't published the real value).
+    // Without it, cache_reference and cache_edits in the request body cause
+    // API 400: "tool_result.cache_reference: Extra inputs are not permitted".
+    const headerAvailable = !!cacheEditingBetaHeader
+    cachedMCEnabled = featureEnabled && modelSupported && headerAvailable
     const config = getCachedMCConfig()
     logForDebugging(
-      `Cached MC gate: enabled=${featureEnabled} modelSupported=${modelSupported} model=${options.model} supportedModels=${jsonStringify((config as any).supportedModels)}`,
+      `Cached MC gate: enabled=${featureEnabled} modelSupported=${modelSupported} headerAvailable=${headerAvailable} model=${options.model} supportedModels=${jsonStringify((config as Record<string, unknown>).supportedModels)}`,
     )
   }
 
@@ -1521,20 +1522,6 @@ async function* queryModel(
     }
   }
 
-  // Only latch from agentic queries so a classifier call doesn't flip the
-  // main thread's context_management mid-turn.
-  let thinkingClearLatched = getThinkingClearLatched() === true
-  if (!thinkingClearLatched && isAgenticQuery) {
-    const lastCompletion = getLastApiCompletionTimestamp()
-    if (
-      lastCompletion !== null &&
-      Date.now() - lastCompletion > CACHE_TTL_1HOUR_MS
-    ) {
-      thinkingClearLatched = true
-      setThinkingClearLatched(true)
-    }
-  }
-
   const effort = resolveAppliedEffort(options.model, options.effortValue)
 
   if (feature('PROMPT_CACHE_BREAK_DETECTION')) {
@@ -1713,7 +1700,7 @@ async function* queryModel(
     const contextManagement = getAPIContextManagement({
       hasThinking,
       isRedactThinkingActive: betasParams.includes(REDACT_THINKING_BETA_HEADER),
-      clearAllThinking: thinkingClearLatched,
+      clearAllThinking: false,
     })
 
     const enablePromptCaching =
@@ -1758,6 +1745,7 @@ async function* queryModel(
       options.querySource === 'repl_main_thread'
     if (
       cacheEditingHeaderLatched &&
+      cacheEditingBetaHeader &&
       getAPIProvider() === 'firstParty' &&
       options.querySource === 'repl_main_thread' &&
       !betasParams.includes(cacheEditingBetaHeader)
@@ -1774,7 +1762,12 @@ async function* queryModel(
       ? (options.temperatureOverride ?? 1)
       : undefined
 
-    lastRequestBetas = betasParams
+    // Filter out any empty-string beta headers before sending.
+    // Constants like CACHE_EDITING_BETA_HEADER or AFK_MODE_BETA_HEADER
+    // can be '' when their feature gate is off; an empty string in the
+    // betas array produces an invalid anthropic-beta header (400 error).
+    const filteredBetas = betasParams.filter(Boolean)
+    lastRequestBetas = filteredBetas
 
     return {
       model: normalizeModelStringForAPI(options.model),
@@ -1790,7 +1783,7 @@ async function* queryModel(
       system,
       tools: allTools,
       tool_choice: options.toolChoice,
-      ...(useBetas && { betas: betasParams }),
+      ...(useBetas && { betas: filteredBetas }),
       metadata: getAPIMetadata(),
       max_tokens: maxOutputTokens,
       thinking,
@@ -3179,9 +3172,9 @@ export function addCacheBreakpoints(
         querySource,
       )
     }
-    const tmpMsg = stripThinkingBlocksFromAssistantMessage(msg);
+    //const tmpMsg = stripThinkingBlocksFromAssistantMessage(msg);
     return assistantMessageToMessageParam(
-      tmpMsg,
+      msg,
       addCache,
       enablePromptCaching,
       querySource,
@@ -3246,6 +3239,7 @@ export function addCacheBreakpoints(
 
   // Add cache_reference to tool_result blocks that are within the cached prefix.
   // Must be done AFTER cache_edits insertion since that modifies content arrays.
+  // Note: this code only runs when useCachedMC=true (early return at line ~3202).
   if (enablePromptCaching) {
     // Find the last message containing a cache_control marker
     let lastCCMsg = -1

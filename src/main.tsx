@@ -1845,7 +1845,7 @@ async function run(): Promise<CommanderCommand> {
       // Extract these separately so they can be modified if needed
       let outputFormat = options.outputFormat
       let inputFormat = options.inputFormat
-      let verbose = options.verbose ?? getGlobalConfig().verbose
+      let verbose = options.verbose ?? getGlobalConfig().verbose ?? true
       let print = options.print
       const init = options.init ?? false
       const initOnly = options.initOnly ?? false
@@ -4051,7 +4051,7 @@ async function run(): Promise<CommanderCommand> {
         settings: getInitialSettings(),
         tasks: {},
         agentNameRegistry: new Map(),
-        verbose: verbose ?? getGlobalConfig().verbose ?? false,
+        verbose: verbose ?? getGlobalConfig().verbose ?? true,
         mainLoopModel: initialMainLoopModel,
         mainLoopModelForSession: null,
         isBriefOnly: initialIsBriefOnly,
