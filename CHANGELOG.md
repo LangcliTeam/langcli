@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.18
+
+- Fix acp duplicate resp text for thinking model
+
 ## 0.1.17
 
 - Fix opus 4.6 thinking bug
