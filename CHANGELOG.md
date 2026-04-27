@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.19
+
+- Fix applyPromptToMarkdown bug for web_fetch tool
+
 ## 0.1.18
 
 - Fix acp duplicate resp text for thinking model

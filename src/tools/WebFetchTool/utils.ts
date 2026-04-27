@@ -500,6 +500,8 @@ export async function applyPromptToMarkdown(
     prompt,
     isPreapprovedDomain,
   )
+  //logError(`web_fetch_apply modelPrompt: ${modelPrompt}`)
+
   const assistantMessage = await queryHaiku({
     systemPrompt: asSystemPrompt([]),
     userPrompt: modelPrompt,
@@ -518,10 +520,12 @@ export async function applyPromptToMarkdown(
   if (signal.aborted) {
     throw new AbortError()
   }
+  //logError(`queryHaiku_done assistantMessage: ${JSON.stringify(assistantMessage)}`)
 
   const { content } = assistantMessage.message
-  if (content.length > 0) {
-    const contentBlock = content[0]
+
+  // Find the first text content block (skip thinking blocks from reasoning models)
+  for (const contentBlock of content) {
     if (contentBlock && typeof contentBlock === 'object' && 'text' in contentBlock) {
       return (contentBlock as { text: string }).text
     }

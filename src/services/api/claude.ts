@@ -764,6 +764,7 @@ export async function queryModelWithoutStreaming({
       options,
     )
   })) {
+    //logError(`msg: ${JSON.stringify(message)}`);
     if (message.type === 'assistant') {
       assistantMessage = message as AssistantMessage
     }
@@ -1367,7 +1368,7 @@ async function* queryModel(
     if (apiProvider === 'openai') {
       //logError(`${options.model} running at openai logic...`)
       const { queryModelOpenAI } = await import('./openai/index.js')
-      yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options)
+      yield* queryModelOpenAI(messagesForAPI, systemPrompt, filteredTools, signal, options, thinkingConfig)
       return
     }
     if (apiProvider === 'gemini') {

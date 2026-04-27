@@ -104,12 +104,12 @@ function getGptCodexOption(): ModelOption {
 function getModelOptionsBase(): ModelOption[] {
   return [
     getDefaultOptionForUser(),
-    getMoonshotK26Option(),
-    getMoonshotK25Option(),
-    getMiniMaxOption(),
-    getGlm51Option(),
     getDeepSeekOption(),
     getDeepSeekThinkOption(),
+    getMoonshotK26Option(),
+    getGlm51Option(),
+    getMoonshotK25Option(),
+    getMiniMaxOption(),
     getClaudeOpusOption(),
     getGptCodexOption(),
   ]

@@ -30,6 +30,7 @@ import { convertMessagesToLangfuse, convertOutputToLangfuse, convertToolsToLangf
 export { isOpenAIThinkingEnabled, resolveOpenAIMaxTokens, buildOpenAIRequestBody }
 import { getModelMaxOutputTokens } from '../../../utils/context.js'
 import type { Options } from '../claude.js'
+import type { ThinkingConfig } from '../../../utils/thinking.js'
 import { randomUUID } from 'crypto'
 import {
   createAssistantAPIErrorMessage,
@@ -148,6 +149,7 @@ export async function* queryModelOpenAI(
   tools: Tools,
   signal: AbortSignal,
   options: Options,
+  thinkingConfig?: ThinkingConfig,
 ): AsyncGenerator<
   StreamEvent | AssistantMessage | SystemAPIErrorMessage,
   void
@@ -217,7 +219,13 @@ export async function* queryModelOpenAI(
     )
 
     // 8. Convert messages and tools to OpenAI format
-    const enableThinking = isOpenAIThinkingEnabled(openaiModel)
+    // Respect thinkingConfig: if explicitly disabled by the caller, disable
+    // thinking even if the model supports it. This is critical for callers
+    // like queryHaiku that pass thinkingConfig: { type: 'disabled' }.
+    let enableThinking = isOpenAIThinkingEnabled(openaiModel)
+    if (thinkingConfig?.type === 'disabled') {
+      enableThinking = false
+    }
     const openAIConvertibleMessages = messagesForAPI.filter(isOpenAIConvertibleMessage)
     const messagesWithDeferredToolList = prependDeferredToolListIfNeeded(
       openAIConvertibleMessages,
@@ -269,7 +277,7 @@ export async function* queryModelOpenAI(
 
     // 11. Get client
     const client = getOpenAIClient({
-      maxRetries: 0,
+      maxRetries: 1,
       fetchOverride: options.fetchOverride as unknown as typeof fetch,
       source: options.querySource,
       model: options.model,

@@ -113,6 +113,13 @@ export function buildOpenAIRequestBody(params: {
       enable_thinking: true,
       chat_template_kwargs: { thinking: true },
     }),
+    ...((enableThinking === false) && {
+      // Official DeepSeek API format
+      thinking: { type: 'disabled' },
+      // Self-hosted DeepSeek-V3.2 format
+      enable_thinking: false,
+      chat_template_kwargs: { thinking: false },
+    }),
     // Only send temperature when thinking mode is off (DeepSeek ignores it anyway,
     // but other providers may respect it)
     ...(!enableThinking && temperature !== undefined && {
