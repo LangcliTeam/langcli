@@ -4,16 +4,15 @@ import isEqual from 'lodash-es/isEqual.js'
 import memoize from 'lodash-es/memoize.js'
 import { join } from 'path'
 import { z } from 'zod/v4'
-import { OAUTH_BETA_HEADER } from '../../constants/oauth.js'
-import { getAnthropicClient } from '../../services/api/client.js'
-import { isClaudeAISubscriber } from '../auth.js'
 import { logForDebugging } from '../debug.js'
 import { getClaudeConfigHomeDir } from '../envUtils.js'
 import { safeParseJSON } from '../json.js'
 import { lazySchema } from '../lazySchema.js'
 import { isEssentialTrafficOnly } from '../privacyLevel.js'
 import { jsonStringify } from '../slowOperations.js'
+import { CANONICAL_ID_TO_PROTOCOL } from './configs.js'
 import { getAPIProvider, isFirstPartyAnthropicBaseUrl } from './providers.js'
+import { logError } from 'src/utils/log.js'
 
 // .strip() — don't persist internal-only fields (mycro_deployments etc.) to disk
 const ModelCapabilitySchema = lazySchema(() =>
@@ -44,9 +43,9 @@ function getCachePath(): string {
 }
 
 function isModelCapabilitiesEligible(): boolean {
-  if (process.env.USER_TYPE !== 'ant') return false
-  if (getAPIProvider() !== 'firstParty') return false
-  if (!isFirstPartyAnthropicBaseUrl()) return false
+  //if (process.env.USER_TYPE !== 'ant') return false
+  //if (getAPIProvider() !== 'firstParty') return false
+  //if (!isFirstPartyAnthropicBaseUrl()) return false
   return true
 }
 
@@ -84,17 +83,33 @@ export function getModelCapability(model: string): ModelCapability | undefined {
 
 export async function refreshModelCapabilities(): Promise<void> {
   if (!isModelCapabilitiesEligible()) return
-  if (isEssentialTrafficOnly()) return
+  //if (isEssentialTrafficOnly()) return
 
   try {
-    const anthropic = await getAnthropicClient({ maxRetries: 1 })
-    const betas = isClaudeAISubscriber() ? [OAUTH_BETA_HEADER] : undefined
+    const response = await fetch('https://api.langrouter.ai/v1/models')
+    const json = await response.json()
+    const data: Array<{
+      id: string
+      name?: string
+      context_length?: number | null
+      max_tokens?: number | null
+    }> = json?.data ?? []
     const parsed: ModelCapability[] = []
-    for await (const entry of anthropic.models.list({ betas })) {
-      const result = ModelCapabilitySchema().safeParse(entry)
-      if (result.success) parsed.push(result.data)
+    for (const entry of data) {
+      if (!(entry.id in CANONICAL_ID_TO_PROTOCOL)) {
+        continue
+      }
+      if (entry.context_length == null || typeof entry.context_length !== 'number') {
+        continue
+      }
+      parsed.push({
+        id: entry.id,
+        max_input_tokens: entry.context_length,
+        max_tokens: entry.max_tokens ?? 64_000,
+      })
     }
     if (parsed.length === 0) return
+    //logError(`ModelCapability: ${JSON.stringify(parsed)}`)
 
     const path = getCachePath()
     const models = sortForMatching(parsed)

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.23
+
+- Fix the issue where the context window size is displayed incorrectly.
+
 ## 0.1.22
 
 - Sync acp code from upstream repo
