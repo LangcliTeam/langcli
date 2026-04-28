@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.21
+
+- Fix metricsOptOut api problem
+
 ## 0.1.20
 
 - Add preventive measures for handling DeepSeek's reasoning_content.
