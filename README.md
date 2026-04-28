@@ -19,7 +19,7 @@ bash -c "$(curl -fsSL https://assets.langcli.com/installation/install-langcli.sh
 #### Windows (Run as Administrator CMD)
 
 ```cmd
-curl -fsSL -o %TEMP%\install-langcli.bat https://assets.langcli.com/installation/install-langcli.bat && %TEMP%\install-langcli.bat
+cmd /c "curl -fsSL -o %TEMP%\install-langcli.bat https://assets.langcli.com/installation/install-langcli.bat && %TEMP%\install-langcli.bat"
 ```
 
 > **Note**: It's recommended to restart your terminal after installation to ensure environment variables take effect.
