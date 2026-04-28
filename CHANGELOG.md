@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.20
+
+- Add preventive measures for handling DeepSeek's reasoning_content.
+
 ## 0.1.19
 
 - Fix applyPromptToMarkdown bug for web_fetch tool

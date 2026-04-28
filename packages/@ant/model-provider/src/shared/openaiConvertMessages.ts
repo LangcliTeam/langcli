@@ -218,6 +218,9 @@ function convertInternalAssistantMessage(
     // Skip redacted_thinking, server_tool_use, etc.
   }
 
+  if (reasoningParts.length == 0) {
+    reasoningParts.push(" ");
+  }
   const result: ChatCompletionAssistantMessageParam = {
     role: 'assistant',
     content: textParts.length > 0 ? textParts.join('\n') : null,
