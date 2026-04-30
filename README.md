@@ -4,8 +4,6 @@ Langcli is an interactive AI coding assistant in the terminal, built upon the le
 Therefore, the way to use Langcli is exactly the same as that of standard Claude Code. Even more exciting is that Langcli is deeply integrated with [LangRouter](https://langrouter.ai/),
 allowing you to friendly use and switch between mainstream LLM models (including Claude OPUS 4.6, Deepseek v4 flash, Deepseek v4 pro, GLM 5.1, Kimi K2.6, Minimax M2.5, etc.) within an ongoing session as needed, without interrupting your context.
 
-Why not integrate with OpenRouter? OpenRouter's API for Claude models is too expensive! Moreover, OpenRouter's Anthropic API interface is not as compatible with the official Claude Code API interface.
-
 ## Installation
 
 ### Quick Install (Recommended)
