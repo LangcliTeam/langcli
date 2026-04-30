@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.24
+
+- Fix the onboarding logic
+
 ## 0.1.23
 
 - Fix the issue where the context window size is displayed incorrectly.

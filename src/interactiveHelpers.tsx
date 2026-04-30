@@ -1,5 +1,6 @@
 import { feature } from 'bun:bundle'
-import { appendFileSync } from 'fs'
+import { appendFileSync, existsSync, statSync } from 'fs'
+import { join } from 'path'
 import React from 'react'
 import { logEvent } from 'src/services/analytics/index.js'
 import {
@@ -44,7 +45,11 @@ import {
   saveGlobalConfig,
 } from './utils/config.js'
 import { updateDeepLinkTerminalPreference } from './utils/deepLink/terminalPreference.js'
-import { isEnvTruthy, isRunningOnHomespace } from './utils/envUtils.js'
+import {
+  getClaudeConfigHomeDir,
+  isEnvTruthy,
+  isRunningOnHomespace,
+} from './utils/envUtils.js'
 import { type FpsMetrics, FpsTracker } from './utils/fpsTracker.js'
 import { updateGithubRepoPathMapping } from './utils/githubRepoPathMapping.js'
 import { applyConfigEnvironmentVariables } from './utils/managedEnv.js'
@@ -144,6 +149,22 @@ export async function renderAndRun(
   await gracefulShutdown(0)
 }
 
+function isHavingSettingsFile(): boolean {
+  const filePath = join(getClaudeConfigHomeDir(), 'settings.json')
+  if (!existsSync(filePath)) {
+    return false
+  }
+  try {
+    const stats = statSync(filePath)
+    if (stats.size > 0) {
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
 export async function showSetupScreens(
   root: Root,
   permissionMode: PermissionMode,
@@ -153,8 +174,6 @@ export async function showSetupScreens(
   devChannels?: ChannelEntry[],
 ): Promise<boolean> {
   if (
-    "production" === 'test' ||
-    isEnvTruthy(false) ||
     process.env.IS_DEMO // Skip onboarding in demo mode
   ) {
     return false
@@ -164,7 +183,8 @@ export async function showSetupScreens(
   let onboardingShown = false
   if (
     !config.theme ||
-    !config.hasCompletedOnboarding // always show onboarding at least once
+    !config.hasCompletedOnboarding || // always show onboarding at least once
+    !isHavingSettingsFile()
   ) {
     onboardingShown = true
     const { Onboarding } = await import('./components/Onboarding.js')
