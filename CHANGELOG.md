@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.50
+
+- Added deepseek-flash(v4.1) model
+
 ## 0.1.49
 
 - Added session id to requests of custom models

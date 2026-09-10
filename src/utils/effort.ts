@@ -38,7 +38,7 @@ export function modelSupportsEffort(model: string): boolean {
     m.includes('opus-5') ||
     m.includes('opus-4') ||
     m.includes('sonnet-4-6') ||
-    m.includes('deepseek-v4-flash') ||
+    m.includes('deepseek-flash') ||
     m.includes('deepseek-v4-pro') ||
     m.includes('glm-5.2') ||
     m.includes('glm-5.3-flash') ||
@@ -72,7 +72,7 @@ export function modelSupportsMaxEffort(model: string): boolean {
     return supported3P
   }
   // Support DeepSeek V4 Pro specifically (Anthropic-compatible API)
-  if (model.toLowerCase().includes('deepseek-v4-flash') || model.toLowerCase().includes('deepseek-v4-pro')) {
+  if (model.toLowerCase().includes('deepseek-flash') || model.toLowerCase().includes('deepseek-v4-pro')) {
     return true
   }
   if (model.toLowerCase().includes('glm-5.2') || model.toLowerCase().includes('glm-5.3-flash')) {

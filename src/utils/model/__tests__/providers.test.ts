@@ -94,7 +94,7 @@ describe("getAPIProvider", () => {
     process.env.CLAUDE_CODE_USE_OPENAI = "1";
     // claude-opus-4-6 is anthropic protocol, so it should still return firstParty
     expect(getAPIProvider(CLAUDE_OPUS_CONFIG)).toBe("firstParty");
-    // deepseek-v4-flash is openai protocol, so it should return openai (matches env)
+    // deepseek-flash is openai protocol, so it should return openai (matches env)
     expect(getAPIProvider(DEEPSEEK_V4_FLASH_CONFIG)).toBe("openai");
   });
 });

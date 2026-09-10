@@ -40,9 +40,9 @@ export function getDefaultOptionForUser(): ModelOption {
 function getDeepSeekOption(): ModelOption {
   return {
     value: DEEPSEEK_V4_FLASH_CONFIG,
-    label: 'DeepSeek V4 flash',
-    description: 'DeepSeek V4 flash · Best for everyday tasks',
-    descriptionForModel: 'DeepSeek V4 flash - best for everyday tasks',
+    label: 'DeepSeek V4.1 flash',
+    description: 'DeepSeek V4.1 flash · Best for everyday tasks',
+    descriptionForModel: 'DeepSeek V4.1 flash - best for everyday tasks',
   }
 }
 

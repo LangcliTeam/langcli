@@ -43,7 +43,7 @@ export function getOpus46CostTier(_fastMode: boolean): ModelCosts {
 }
 
 export const MODEL_COSTS: Record<string, ModelCosts> = {
-  'deepseek-v4-flash': COST_TIER_3_15,
+  'deepseek-lash': COST_TIER_3_15,
   'kimi-k2.5': COST_TIER_3_15,
   'kimi-k2': COST_TIER_3_15,
   'minimax-m3': COST_TIER_3_15,

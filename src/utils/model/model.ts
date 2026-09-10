@@ -129,8 +129,8 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   if (name.includes('deepseek-v4-pro')) {
     return 'deepseek-v4-pro'
   }
-  if (name.includes('deepseek-v4-flash')) {
-    return 'deepseek-v4-flash'
+  if (name.includes('deepseek-flash')) {
+    return 'deepseek-flash'
   }
   if (name.includes('kimi-k2.7-code')) {
     return 'kimi-k2.7-code'
@@ -198,8 +198,8 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
     return 'LangRouter Auto'
   }
 
-  if (model === 'deepseek-v4-flash') {
-    return 'DeepSeek V4 flash'
+  if (model === 'deepseek-flash') {
+    return 'DeepSeek flash'
   }
   if (model === 'deepseek-v4-pro') {
     return 'DeepSeek V4 pro'
@@ -268,7 +268,7 @@ export function parseUserSpecifiedModel(
   if (modelInputTrimmed === 'langrouter/auto') {
     return LANGROUTER_AUTO_CONFIG
   }
-  if (modelInputTrimmed === 'deepseek-v4-flash') {
+  if (modelInputTrimmed === 'deepseek-flash') {
     return DEEPSEEK_V4_FLASH_CONFIG
   }
   if (modelInputTrimmed === 'deepseek-v4-pro') {

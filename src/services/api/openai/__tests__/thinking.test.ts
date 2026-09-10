@@ -227,7 +227,7 @@ describe('buildOpenAIRequestBody — thinking params', () => {
 
 describe('buildOpenAIRequestBody — reasoning_effort from effortValue', () => {
   const baseParams = {
-    model: 'deepseek-v4-flash',
+    model: 'deepseek-flash',
     messages: [{ role: 'user', content: 'hello' }],
     tools: [] as any[],
     toolChoice: undefined as any,

@@ -5,7 +5,7 @@ export type ModelConfig = string
 export const LANGROUTER_AUTO_CONFIG = 'langrouter/auto' as const satisfies ModelConfig
 export const LANGROUTER_AUTO_FREE_CONFIG = 'langrouter/auto-free' as const satisfies ModelConfig
 
-export const DEEPSEEK_V4_FLASH_CONFIG = 'deepseek-v4-flash' as const satisfies ModelConfig
+export const DEEPSEEK_V4_FLASH_CONFIG = 'deepseek-flash' as const satisfies ModelConfig
 
 export const DEEPSEEK_V4_PRO_CONFIG = 'deepseek-v4-pro' as const satisfies ModelConfig
 

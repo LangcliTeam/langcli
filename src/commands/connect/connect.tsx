@@ -63,8 +63,8 @@ type ProviderConfig = {
 
 const DEEPSEEK_MODELS: ModelEntry[] = [
   {
-    id: 'deepseek-v4-flash[1m]',
-    name: 'Deepseek-v4-flash[1m] (custom)',
+    id: 'deepseek-flash[1m]',
+    name: 'Deepseek-v4.1-flash[1m] (custom)',
     envKey: 'DEEPSEEK_API_KEY',
     baseUrl: 'https://api.deepseek.com',
     generationConfig: {
@@ -172,7 +172,7 @@ const PROVIDER_CONFIGS: Record<'deepseek' | 'mimo-go' | 'mimo-plan', ProviderCon
     label: 'Deepseek',
     models: DEEPSEEK_MODELS,
     envKeyName: 'DEEPSEEK_API_KEY',
-    modelIds: ['deepseek-v4-flash[1m]', 'deepseek-v4-pro[1m]'],
+    modelIds: ['deepseek-flash[1m]', 'deepseek-v4-pro[1m]'],
   },
   'mimo-go': {
     label: 'Mimo (Pay as go)',

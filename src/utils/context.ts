@@ -204,7 +204,7 @@ export function getModelMaxOutputTokens(model: string): {
     upperLimit = MAX_OUTPUT_TOKENS_UPPER_LIMIT
   }
 
-  if (model === "deepseek-v4-flash" || model === "deepseek-v4-pro") {
+  if (model === "deepseek-flash" || model === "deepseek-v4-pro") {
     defaultTokens = 128_000
     upperLimit = 384000
   } else if (model === "mimo-v2.5" || model === "mimo-v2.5-pro") {
