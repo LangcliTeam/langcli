@@ -76,34 +76,62 @@ if !ERRORLEVEL! EQU 0 (
 
 :InstallLangcli
 
-REM Verify npm is available before installing Langcli
-REM Always use full path to npm to avoid local node_modules conflicts
-set "NODEJS_PATH=C:\Program Files\nodejs"
-set "NODEJS_PATH_X86=C:\Program Files (x86)\nodejs"
-
-if exist "!NODEJS_PATH!\npm.cmd" (
-    echo INFO: Using npm from !NODEJS_PATH!
-    set "NPM_CMD=!NODEJS_PATH!\npm.cmd"
-) else if exist "!NODEJS_PATH_X86!\npm.cmd" (
-    echo INFO: Using npm from !NODEJS_PATH_X86!
-    set "NPM_CMD=!NODEJS_PATH_X86!\npm.cmd"
-) else (
-    call :CheckCommandExists npm
-    if !ERRORLEVEL! NEQ 0 (
-        echo ERROR: npm command not found. Node.js installation may have failed.
-        echo INFO: Please restart your command prompt and try again.
-        echo INFO: If the problem persists, manually install Node.js from: https://nodejs.org/
-        exit /b 1
+REM Resolve npm from the same installation as node first. This prevents a
+REM stale npm.cmd elsewhere on PATH from being paired with the wrong Node.js.
+set "NPM_CMD="
+set "NODE_BIN_DIR="
+for /f "delims=" %%i in ('where node 2^>nul') do (
+    if not defined NPM_CMD (
+        for %%I in ("%%i") do set "NODE_BIN_DIR=%%~dpI"
+        if exist "!NODE_BIN_DIR!npm.cmd" (
+            set "NPM_CMD=!NODE_BIN_DIR!npm.cmd"
+            echo INFO: Using npm next to Node.js at !NODE_BIN_DIR!
+        )
     )
-    set "NPM_CMD=npm"
+)
+
+REM Fall back to the standard machine-wide Node.js locations, then PATH.
+if not defined NPM_CMD (
+    set "NODEJS_PATH=C:\Program Files\nodejs"
+    set "NODEJS_PATH_X86=C:\Program Files (x86)\nodejs"
+
+    if exist "!NODEJS_PATH!\npm.cmd" (
+        echo INFO: Using npm from !NODEJS_PATH!
+        set "NPM_CMD=!NODEJS_PATH!\npm.cmd"
+    ) else if exist "!NODEJS_PATH_X86!\npm.cmd" (
+        echo INFO: Using npm from !NODEJS_PATH_X86!
+        set "NPM_CMD=!NODEJS_PATH_X86!\npm.cmd"
+    ) else (
+        call :CheckCommandExists npm
+        if !ERRORLEVEL! NEQ 0 (
+            echo ERROR: npm command not found. Node.js installation may have failed.
+            echo INFO: Please restart your command prompt and try again.
+            echo INFO: If the problem persists, manually install Node.js from: https://nodejs.org/
+            exit /b 1
+        )
+        for /f "delims=" %%i in ('where npm 2^>nul') do (
+            if not defined NPM_CMD set "NPM_CMD=%%i"
+        )
+    )
+)
+
+REM Fail with a useful message when npm itself is incomplete instead of
+REM exposing an internal npm-prefix.js or npm-cli.js stack trace.
+echo INFO: Checking npm at !NPM_CMD!
+call "!NPM_CMD!" --version >nul 2>&1
+if !ERRORLEVEL! NEQ 0 (
+    echo ERROR: npm was found at !NPM_CMD! but could not start.
+    echo INFO: This usually means the Node.js installation has an incomplete npm bundle.
+    echo INFO: Reinstall the latest Node.js LTS from https://nodejs.org/ and run this script again.
+    exit /b 1
 )
 
 REM Install Langcli with source information
 echo INFO: Installing Langcli with source: %SOURCE%
 echo INFO: Running: %NPM_CMD% install -g langcli-com --registry https://registry.npmmirror.com
-call "%NPM_CMD%" install -g langcli-com --registry https://registry.npmmirror.com
+call "!NPM_CMD!" install -g langcli-com --registry https://registry.npmmirror.com
 
-if %ERRORLEVEL% EQU 0 (
+if !ERRORLEVEL! EQU 0 (
     echo SUCCESS: Langcli installed successfully!
 ) else (
     echo ERROR: Failed to install Langcli.
@@ -131,7 +159,7 @@ if not "!SOURCE!"=="unknown" (
 
 REM Verify installation
 call :CheckCommandExists langcli
-if %ERRORLEVEL% EQU 0 (
+if !ERRORLEVEL! EQU 0 (
     echo SUCCESS: Langcli is available as 'langcli' command.
     call langcli --version
     echo.
