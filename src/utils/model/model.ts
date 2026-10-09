@@ -9,12 +9,12 @@ import {
   DEEPSEEK_V4_PRO_CONFIG,
   MOONSHOT_KIMI_K2_5_CONFIG,
   MINIMAX_M3_CONFIG,
-  CLAUDE_OPUS_CONFIG,
   CLAUDE_OPUS_4_CONFIG,
+  CLAUDE_OPUS_5_CONFIG,
   GLM_5_2_CONFIG,
   GLM_5_3_FLASH_CONFIG,
-  GPT_5_4_CONFIG,
   GPT_5_6_CONFIG,
+  GPT_6_1_CONFIG,
   MOONSHOT_KIMI_K2_7_CONFIG,
   RING_2_6_1T_CONFIG,
   MIMO_2_5_PRO_CONFIG,
@@ -210,8 +210,8 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'minimax-m3') {
     return 'MiniMax M3'
   }
-  if (model === 'claude-opus-5') {
-    return 'Claude Opus 5'
+  if (model === 'claude-opus-5-5') {
+    return 'Claude Opus 5.5'
   }
   if (model === 'claude-opus-4-8') {
     return 'Claude Opus 4.8'
@@ -222,11 +222,11 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'glm-5.3-flash') {
     return 'GLM 5.3 flash'
   }
-  if (model === 'gpt-5.4') {
-    return 'GPT 5.4'
-  }
   if (model === 'gpt-5.6-sol') {
     return 'GPT 5.6 Sol'
+  }
+  if (model === 'gpt-6.1-sol') {
+    return 'GPT 6.1 Sol'
   }
   if (model === 'kimi-k2.7-code') {
     return 'Kimi K2.7 code'
@@ -280,8 +280,8 @@ export function parseUserSpecifiedModel(
   if (modelInputTrimmed === 'minimax-m3') {
     return MINIMAX_M3_CONFIG
   }
-  if (modelInputTrimmed === 'claude-opus-5') {
-    return CLAUDE_OPUS_CONFIG
+  if (modelInputTrimmed === 'claude-opus-5-5') {
+    return CLAUDE_OPUS_5_CONFIG
   }
   if (modelInputTrimmed === 'claude-opus-4-8') {
     return CLAUDE_OPUS_4_CONFIG
@@ -292,11 +292,11 @@ export function parseUserSpecifiedModel(
   if (modelInputTrimmed === 'glm-5.3-flash') {
     return GLM_5_3_FLASH_CONFIG
   }
-  if (modelInputTrimmed === 'gpt-5.4') {
-    return GPT_5_4_CONFIG
-  }
   if (modelInputTrimmed === 'gpt-5.6-sol') {
     return GPT_5_6_CONFIG
+  }
+  if (modelInputTrimmed === 'gpt-6.1-sol') {
+    return GPT_6_1_CONFIG
   }
   if (modelInputTrimmed === 'kimi-k2.7-code') {
     return MOONSHOT_KIMI_K2_7_CONFIG

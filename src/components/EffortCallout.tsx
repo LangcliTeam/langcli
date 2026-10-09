@@ -133,7 +133,7 @@ function EffortOptionLabel({
 export function shouldShowEffortCallout(model: string): boolean {
   // Only show for Opus 4.8 for now
   const parsed = parseUserSpecifiedModel(model)
-  if (!parsed.toLowerCase().includes('opus-4-8')) {
+  if (!parsed.toLowerCase().includes('opus-4-8') || !parsed.toLowerCase().includes('opus-5-5')) {
     return false
   }
 

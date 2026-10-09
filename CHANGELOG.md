@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.51
+
+- Added gpt-6.1-sol and opus-5.5 model
+
 ## 0.1.50
 
 - Added deepseek-flash(v4.1) model

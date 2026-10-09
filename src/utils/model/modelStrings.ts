@@ -48,7 +48,7 @@ async function getBedrockModelStrings(): Promise<ModelStrings> {
   // when no matching profile is found.
   const out = {} as ModelStrings
   for (const key of MODEL_KEYS) {
-    const needle = ALL_MODEL_CONFIGS[key].firstParty
+    const needle = ALL_MODEL_CONFIGS[key]
     out[key] = findFirstMatch(profiles, needle) || fallback[key]
   }
   return out

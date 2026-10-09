@@ -116,11 +116,11 @@ export const SYSTEM_PROMPT_DYNAMIC_BOUNDARY =
   '__SYSTEM_PROMPT_DYNAMIC_BOUNDARY__'
 
 // @[MODEL LAUNCH]: Update the latest frontier model.
-const FRONTIER_MODEL_NAME = 'Claude Opus 5'
+const FRONTIER_MODEL_NAME = 'Claude Opus 5.5'
 
 // @[MODEL LAUNCH]: Update the model family IDs below to the latest in each tier.
 const CLAUDE_4_5_OR_4_6_MODEL_IDS = {
-  opus: 'claude-opus-5',
+  opus: 'claude-opus-5-5',
   sonnet: 'claude-sonnet-4-6',
   haiku: 'claude-haiku-4-5-20251001',
 }
@@ -713,8 +713,8 @@ export async function computeSimpleEnvInfo(
 // @[MODEL LAUNCH]: Add a knowledge cutoff date for the new model.
 function getKnowledgeCutoff(modelId: string): string | null {
   const canonical = getCanonicalName(modelId)
-  if (canonical.includes('claude-opus-5')) {
-    return 'May 2026'
+  if (canonical.includes('claude-opus-5-5')) {
+    return 'Sep 2026'
   } else if (canonical.includes('claude-sonnet-4-6')) {
     return 'August 2025'
   } else if (canonical.includes('claude-opus-4-8')) {

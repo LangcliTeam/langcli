@@ -42,8 +42,8 @@ export function modelSupportsEffort(model: string): boolean {
     m.includes('deepseek-v4-pro') ||
     m.includes('glm-5.2') ||
     m.includes('glm-5.3-flash') ||
-    m.includes('gpt-5.4') ||
     m.includes('gpt-5.6-sol') ||
+    m.includes('gpt-6.1-sol') ||
     m.includes('ring-2.6-1t')
   ) {
     return true
@@ -78,8 +78,8 @@ export function modelSupportsMaxEffort(model: string): boolean {
   if (model.toLowerCase().includes('glm-5.2') || model.toLowerCase().includes('glm-5.3-flash')) {
     return true
   }
-  // GPT-5.6 Sol supports max reasoning effort.
-  if (model.toLowerCase().includes('gpt-5.6-sol')) {
+  // GPT-5.6/6.1 Sol supports max reasoning effort.
+  if (model.toLowerCase().includes('gpt-5.6-sol') || model.toLowerCase().includes('gpt-6.1-sol')) {
     return true
   }
   if (
@@ -104,13 +104,13 @@ export function modelSupportsXhighEffort(model: string): boolean {
   if (model.toLowerCase().includes('opus-5') || model.toLowerCase().includes('opus-4-8')) {
     return true
   }
-  // GLM-5.2, GPT-5.4, GPT-5.6 Sol, and Ring-2.6-1T support xhigh effort.
+  // GLM-5.2, GPT-5.6 Sol, GPT-6.1 sol, and Ring-2.6-1T support xhigh effort.
   const lower = model.toLowerCase()
   if (
     lower.includes('glm-5.2') ||
     lower.includes('glm-5.3-flash') ||
-    lower.includes('gpt-5.4') ||
     lower.includes('gpt-5.6-sol') ||
+    lower.includes('gpt-6.1-sol') ||
     lower.includes('ring-2.6-1t')
   ) {
     return true
@@ -296,9 +296,9 @@ export function getEffortLevelDescription(level: EffortLevel): string {
     case 'high':
       return 'Comprehensive implementation with extensive testing and documentation'
     case 'xhigh':
-      return 'Extended reasoning beyond high, short of max (Opus, GLM 5.2, GPT-5.4/5.6, Ring-2.6-1T)'
+      return 'Extended reasoning beyond high, short of max (Opus, GLM 5.2, GPT-5.6/6.1, Ring-2.6-1T)'
     case 'max':
-      return 'Maximum capability with deepest reasoning (Opus, GLM 5.2/5.3 flash, DeepSeek V4 flash/pro, GPT-5.6 Sol)'
+      return 'Maximum capability with deepest reasoning (Opus, GLM 5.2/5.3 flash, DeepSeek V4 flash/pro, GPT-5.6/6.1 Sol)'
   }
 }
 

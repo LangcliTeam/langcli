@@ -13,14 +13,15 @@ export const MOONSHOT_KIMI_K2_5_CONFIG = 'kimi-k2.5' as const satisfies ModelCon
 
 export const MINIMAX_M3_CONFIG = 'minimax-m3' as const satisfies ModelConfig
 
-export const CLAUDE_OPUS_CONFIG = 'claude-opus-5' as const satisfies ModelConfig
 export const CLAUDE_OPUS_4_CONFIG = 'claude-opus-4-8' as const satisfies ModelConfig
+export const CLAUDE_OPUS_5_CONFIG = 'claude-opus-5-5' as const satisfies ModelConfig
+export const CLAUDE_OPUS_CONFIG = CLAUDE_OPUS_5_CONFIG;
 
 export const GLM_5_2_CONFIG = 'glm-5.2' as const satisfies ModelConfig
 export const GLM_5_3_FLASH_CONFIG = 'glm-5.3-flash' as const satisfies ModelConfig
 
-export const GPT_5_4_CONFIG = 'gpt-5.4' as const satisfies ModelConfig
 export const GPT_5_6_CONFIG = 'gpt-5.6-sol' as const satisfies ModelConfig
+export const GPT_6_1_CONFIG = 'gpt-6.1-sol' as const satisfies ModelConfig
 
 export const MOONSHOT_KIMI_K2_7_CONFIG = 'kimi-k2.7-code' as const satisfies ModelConfig
 
@@ -37,12 +38,12 @@ export const ALL_MODEL_CONFIGS = {
   deepseekThink: DEEPSEEK_V4_PRO_CONFIG,
   moonshot: MOONSHOT_KIMI_K2_5_CONFIG,
   minimax: MINIMAX_M3_CONFIG,
-  claudeOpus: CLAUDE_OPUS_CONFIG,
   claudeOpus4: CLAUDE_OPUS_4_CONFIG,
+  claudeOpus5: CLAUDE_OPUS_5_CONFIG,
   glm52: GLM_5_2_CONFIG,
   glm53Flash: GLM_5_3_FLASH_CONFIG,
-  gpt54: GPT_5_4_CONFIG,
   gpt56: GPT_5_6_CONFIG,
+  gpt61: GPT_6_1_CONFIG,
   moonshot26: MOONSHOT_KIMI_K2_7_CONFIG,
   ring261T: RING_2_6_1T_CONFIG,
   mimo25Pro: MIMO_2_5_PRO_CONFIG,

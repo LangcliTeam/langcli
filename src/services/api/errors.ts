@@ -945,7 +945,7 @@ function get3PModelFallbackSuggestion(model: string): string | undefined {
   const m = model.toLowerCase()
   // If the failing model looks like an Opus 4.6 variant, suggest the default Opus (4.1 for 3P)
   if (m.includes('opus-4-6') || m.includes('opus_4_6')) {
-    return getModelStrings().claudeOpus
+    return getModelStrings().claudeOpus4
   }
   // If the failing model looks like a Sonnet 4.6 variant, suggest Sonnet 4.5
   if (m.includes('sonnet-4-6') || m.includes('sonnet_4_6')) {

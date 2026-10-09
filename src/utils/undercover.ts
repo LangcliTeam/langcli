@@ -63,7 +63,7 @@ GOOD:
 
 BAD (never write these):
 - "Fix bug found while testing with Claude Capybara"
-- "1-shotted by claude-opus-5"
+- "1-shotted by claude-opus-5-5"
 - "Generated with Claude Code"
 - "Co-Authored-By: Claude Opus 5 <…>"
 `
