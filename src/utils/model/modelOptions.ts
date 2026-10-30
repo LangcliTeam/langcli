@@ -296,3 +296,23 @@ function filterModelOptionsByAllowlist(options: ModelOption[]): ModelOption[] {
       (opt.value !== null && isModelAllowed(opt.value)),
   )
 }
+
+/**
+ * Vendor label for a resolved model id, used by SDK consumers that group the
+ * model picker by provider. Ids that match no known family — including
+ * settings-defined `custom:` models — are reported as "custom" so they never
+ * masquerade as another vendor.
+ */
+export function getModelProvider(resolvedModel: string): string {
+  const id = resolvedModel.toLowerCase()
+  if (id.startsWith('langrouter/')) return 'langrouter'
+  if (id.startsWith('deepseek')) return 'deepseek'
+  if (id.startsWith('glm')) return 'z.ai'
+  if (id.startsWith('claude')) return 'anthropic'
+  if (id.startsWith('kimi')) return 'moonshot'
+  if (id.startsWith('gpt')) return 'openai'
+  if (id.startsWith('minimax')) return 'minimax'
+  if (id.startsWith('ring')) return 'inclusionai'
+  if (id.startsWith('mimo')) return 'xiaomi'
+  return 'custom'
+}

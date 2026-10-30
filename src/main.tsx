@@ -1606,10 +1606,10 @@ async function run(): Promise<CommanderCommand> {
     .addOption(
       new Option(
         '--effort <level>',
-        `Effort level for the current session (low, medium, high, max)`,
+        `Effort level for the current session (low, medium, high, xhigh, max)`,
       ).argParser((rawValue: string) => {
         const value = rawValue.toLowerCase()
-        const allowed = ['low', 'medium', 'high', 'max']
+        const allowed = ['low', 'medium', 'high', 'xhigh', 'max']
         if (!allowed.includes(value)) {
           throw new InvalidArgumentError(
             `It must be one of: ${allowed.join(', ')}`,
