@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.52
+
+- Add support for Multica
+
 ## 0.1.51
 
 - Added gpt-6.1-sol and opus-5.5 model

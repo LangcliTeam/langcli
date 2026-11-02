@@ -270,7 +270,10 @@ import {
   modelDisplayString,
   parseUserSpecifiedModel,
 } from 'src/utils/model/model.js'
-import { getModelOptions } from 'src/utils/model/modelOptions.js'
+import {
+  getModelOptions,
+  getModelProvider,
+} from 'src/utils/model/modelOptions.js'
 import {
   modelSupportsEffort,
   modelSupportsMaxEffort,
@@ -1212,6 +1215,47 @@ function runHeadlessStreaming(
       ...(hasAutoMode && { supportsAutoMode: true }),
     }
   })
+
+  // `list_models` answers SDK-side model discovery (Multica asks the local
+  // binary what it can run). The rows are the same catalog the initialize
+  // response advertises, plus the identity each token resolves to — that is
+  // what a consumer persists and passes back via --model — and the vendor used
+  // to group the picker. A `default` sentinel is materialised because this
+  // fork's options are all concrete models.
+  const buildModelListResponse = () => {
+    const rows: Record<string, unknown>[] = modelInfos.map(info => {
+      const value = info.name
+      const resolvedModel =
+        value === 'default'
+          ? getDefaultMainLoopModel()
+          : parseUserSpecifiedModel(value)
+      return {
+        ...info,
+        resolvedModel,
+        provider: getModelProvider(resolvedModel),
+      }
+    })
+    if (!rows.some(row => row.name === 'default')) {
+      const resolvedModel = getDefaultMainLoopModel()
+      const hasEffort = modelSupportsEffort(resolvedModel)
+      rows.unshift({
+        name: 'default',
+        value: 'default',
+        resolvedModel,
+        provider: getModelProvider(resolvedModel),
+        displayName: `Default (${resolvedModel})`,
+        description: 'The model this runtime uses when none is selected',
+        ...(hasEffort && {
+          supportsEffort: true,
+          supportedEffortLevels: modelSupportsMaxEffort(resolvedModel)
+            ? [...EFFORT_LEVELS]
+            : EFFORT_LEVELS.filter(l => l !== 'max'),
+        }),
+      })
+    }
+    return rows
+  }
+
   let activeUserSpecifiedModel = options.userSpecifiedModel
 
   function injectModelSwitchBreadcrumbs(
@@ -4014,6 +4058,12 @@ function runHeadlessStreaming(
             }
             sendControlResponseSuccess(message)
           }
+        } else if (
+          (message.request as { subtype: string }).subtype === 'list_models'
+        ) {
+          sendControlResponseSuccess(message, {
+            models: buildModelListResponse(),
+          })
         } else {
           // Unknown control request subtype — send an error response so
           // the caller doesn't hang waiting for a reply that never comes.
