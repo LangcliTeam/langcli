@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.53
+
+- Updated mimo-2.5 models to mimo-2.6 models
+
 ## 0.1.52
 
 - Add support for Multica

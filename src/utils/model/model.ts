@@ -17,8 +17,8 @@ import {
   GPT_6_1_CONFIG,
   MOONSHOT_KIMI_K2_7_CONFIG,
   RING_2_6_1T_CONFIG,
-  MIMO_2_5_PRO_CONFIG,
-  MIMO_2_5_CONFIG,
+  MIMO_2_6_PRO_CONFIG,
+  MIMO_2_6_FLASH_CONFIG,
 } from './configs.js'
 import {
   has1mContext,
@@ -72,7 +72,7 @@ export function getMainLoopModel(): ModelName {
 }
 
 export function getBestModel(): ModelName {
-  return CLAUDE_OPUS_CONFIG
+  return CLAUDE_OPUS_5_CONFIG
 }
 
 export function getDefaultOpusModel(): ModelName {
@@ -83,7 +83,7 @@ export function getDefaultOpusModel(): ModelName {
   if (model && model.startsWith('custom:')) {
     return model
   }
-  return CLAUDE_OPUS_CONFIG
+  return CLAUDE_OPUS_5_CONFIG
 }
 
 export function getDefaultSonnetModel(): ModelName {
@@ -156,11 +156,11 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   if (name.includes('ring-2.6-1t')) {
     return 'ring-2.6-1t'
   }
-  if (name.includes('mimo-v2.5-pro')) {
-    return 'mimo-v2.5-pro'
+  if (name.includes('mimo-v2.6-pro')) {
+    return 'mimo-v2.6-pro'
   }
-  if (name.includes('mimo-v2.5')) {
-    return 'mimo-v2.5'
+  if (name.includes('mimo-v2.6-flash')) {
+    return 'mimo-v2.6-flash'
   }
 
   return fullModelName
@@ -234,11 +234,11 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
   if (model === 'ring-2.6-1t') {
     return 'Ring 2.6 1T'
   }
-  if (model === 'mimo-v2.5-pro') {
-    return 'Mimo 2.5 pro'
+  if (model === 'mimo-v2.6-pro') {
+    return 'Mimo 2.6 pro'
   }
-  if (model === 'mimo-v2.5') {
-    return 'Mimo 2.5'
+  if (model === 'mimo-v2.6-flash') {
+    return 'Mimo 2.6 flash'
   }
 
   return null
@@ -304,11 +304,11 @@ export function parseUserSpecifiedModel(
   if (modelInputTrimmed === 'ring-2.6-1t') {
     return RING_2_6_1T_CONFIG
   }
-  if (modelInputTrimmed === 'mimo-v2.5-pro') {
-    return MIMO_2_5_PRO_CONFIG
+  if (modelInputTrimmed === 'mimo-v2.6-pro') {
+    return MIMO_2_6_PRO_CONFIG
   }
-  if (modelInputTrimmed === 'mimo-v2.5') {
-    return MIMO_2_5_CONFIG
+  if (modelInputTrimmed === 'mimo-v2.6-flash') {
+    return MIMO_2_6_FLASH_CONFIG
   }
 
   const normalizedModel = modelInputTrimmed.toLowerCase()

@@ -11,8 +11,8 @@ import {
   GPT_6_1_CONFIG,
   MOONSHOT_KIMI_K2_7_CONFIG,
   RING_2_6_1T_CONFIG,
-  MIMO_2_5_PRO_CONFIG,
-  MIMO_2_5_CONFIG,
+  MIMO_2_6_PRO_CONFIG,
+  MIMO_2_6_FLASH_CONFIG,
 } from './configs.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { getGlobalConfig } from '../config.js'
@@ -136,21 +136,21 @@ function getRing261TOption(): ModelOption {
   }
 }
 
-function getMimo25ProOption(): ModelOption {
+function getMimo26ProOption(): ModelOption {
   return {
-    value: MIMO_2_5_PRO_CONFIG,
-    label: 'Mimo 2.5 pro',
-    description: 'Mimo 2.5 pro · Xiaomi Mimo flagship model',
-    descriptionForModel: 'Mimo 2.5 pro · Xiaomi Mimo flagship model',
+    value: MIMO_2_6_PRO_CONFIG,
+    label: 'Mimo 2.6 pro',
+    description: 'Mimo 2.6 pro · Xiaomi Mimo flagship model',
+    descriptionForModel: 'Mimo 2.6 pro · Xiaomi Mimo flagship model',
   }
 }
 
-function getMimo25Option(): ModelOption {
+function getMimo26FlashOption(): ModelOption {
   return {
-    value: MIMO_2_5_CONFIG,
-    label: 'Mimo 2.5',
-    description: 'Mimo 2.5 · Xiaomi Mimo model',
-    descriptionForModel: 'Mimo 2.5 · Xiaomi Mimo model',
+    value: MIMO_2_6_FLASH_CONFIG,
+    label: 'Mimo 2.6 flash',
+    description: 'Mimo 2.6 Flash · Xiaomi Mimo flash model',
+    descriptionForModel: 'Mimo 2.6 Flash · Xiaomi Mimo flash model',
   }
 }
 
@@ -167,8 +167,8 @@ function getModelOptionsBase(): ModelOption[] {
     getGpt56Option(),
     getGpt61Option(),
     getMiniMaxOption(),
-    getMimo25ProOption(),
-    getMimo25Option(),
+    getMimo26ProOption(),
+    getMimo26FlashOption(),
   ]
 }
 

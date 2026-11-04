@@ -27,9 +27,9 @@ export const MOONSHOT_KIMI_K2_7_CONFIG = 'kimi-k2.7-code' as const satisfies Mod
 
 export const RING_2_6_1T_CONFIG = 'ring-2.6-1t' as const satisfies ModelConfig
 
-export const MIMO_2_5_PRO_CONFIG = 'mimo-v2.5-pro' as const satisfies ModelConfig
+export const MIMO_2_6_PRO_CONFIG = 'mimo-v2.6-pro' as const satisfies ModelConfig
 
-export const MIMO_2_5_CONFIG = 'mimo-v2.5' as const satisfies ModelConfig
+export const MIMO_2_6_FLASH_CONFIG = 'mimo-v2.6-flash' as const satisfies ModelConfig
 
 export const ALL_MODEL_CONFIGS = {
   langrouterAuto: LANGROUTER_AUTO_CONFIG,
@@ -46,8 +46,8 @@ export const ALL_MODEL_CONFIGS = {
   gpt61: GPT_6_1_CONFIG,
   moonshot26: MOONSHOT_KIMI_K2_7_CONFIG,
   ring261T: RING_2_6_1T_CONFIG,
-  mimo25Pro: MIMO_2_5_PRO_CONFIG,
-  mimo25: MIMO_2_5_CONFIG,
+  mimo26Pro: MIMO_2_6_PRO_CONFIG,
+  mimo25Flash: MIMO_2_6_FLASH_CONFIG,
 } as const satisfies Record<string, ModelConfig>
 
 export type ModelKey = keyof typeof ALL_MODEL_CONFIGS

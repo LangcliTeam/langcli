@@ -98,8 +98,8 @@ const DEEPSEEK_MODELS: ModelEntry[] = [
 
 const MIMO_GO_MODELS: ModelEntry[] = [
   {
-    id: 'mimo-v2.5[1m]',
-    name: 'Mimo-v2.5[1m]-GO (custom)',
+    id: 'mimo-v2.6-flash[1m]',
+    name: 'Mimo-v2.6-flash[1m]-GO (custom)',
     envKey: 'MIMO_API_KEY',
     baseUrl: 'https://api.xiaomimimo.com/v1',
     generationConfig: {
@@ -114,8 +114,8 @@ const MIMO_GO_MODELS: ModelEntry[] = [
     },
   },
   {
-    id: 'mimo-v2.5-pro[1m]',
-    name: 'Mimo-v2.5-pro[1m]-Go (custom)',
+    id: 'mimo-v2.6-pro[1m]',
+    name: 'Mimo-v2.6-pro[1m]-Go (custom)',
     envKey: 'MIMO_API_KEY',
     baseUrl: 'https://api.xiaomimimo.com/v1',
     generationConfig: {
@@ -133,8 +133,8 @@ const MIMO_GO_MODELS: ModelEntry[] = [
 
 const MIMO_PLAN_MODELS: ModelEntry[] = [
   {
-    id: 'mimo-v2.5[1m]',
-    name: 'Mimo-v2.5[1m]-Plan (custom)',
+    id: 'mimo-v2.6-flash[1m]',
+    name: 'Mimo-v2.6-flash[1m]-Plan (custom)',
     envKey: 'MIMO_API_KEY',
     baseUrl: 'https://token-plan-cn.xiaomimimo.com/v1',
     generationConfig: {
@@ -149,8 +149,8 @@ const MIMO_PLAN_MODELS: ModelEntry[] = [
     },
   },
   {
-    id: 'mimo-v2.5-pro[1m]',
-    name: 'Mimo-v2.5-pro[1m]-Plan (custom)',
+    id: 'mimo-v2.6-pro[1m]',
+    name: 'Mimo-v2.6-pro[1m]-Plan (custom)',
     envKey: 'MIMO_API_KEY',
     baseUrl: 'https://token-plan-cn.xiaomimimo.com/v1',
     generationConfig: {
@@ -178,13 +178,13 @@ const PROVIDER_CONFIGS: Record<'deepseek' | 'mimo-go' | 'mimo-plan', ProviderCon
     label: 'Mimo (Pay as go)',
     models: MIMO_GO_MODELS,
     envKeyName: 'MIMO_API_KEY',
-    modelIds: ['mimo-v2.5[1m]', 'mimo-v2.5-pro[1m]'],
+    modelIds: ['mimo-v2.6-flash[1m]', 'mimo-v2.6-pro[1m]'],
   },
   'mimo-plan': {
     label: 'Mimo (Token plan)',
     models: MIMO_PLAN_MODELS,
     envKeyName: 'MIMO_API_KEY',
-    modelIds: ['mimo-v2.5[1m]', 'mimo-v2.5-pro[1m]'],
+    modelIds: ['mimo-v2.6-flash[1m]', 'mimo-v2.6-pro[1m]'],
   },
 }
 

@@ -207,7 +207,7 @@ export function getModelMaxOutputTokens(model: string): {
   if (model === "deepseek-flash" || model === "deepseek-v4-pro") {
     defaultTokens = 128_000
     upperLimit = 384000
-  } else if (model === "mimo-v2.5" || model === "mimo-v2.5-pro") {
+  } else if (model === "mimo-v2.6-flash" || model === "mimo-v2.6-pro") {
     defaultTokens = 128_000
     upperLimit = 131000
   } else if (model === "glm-5.2" || model === "glm-5.3-flash") {

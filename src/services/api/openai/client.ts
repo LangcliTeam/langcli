@@ -20,8 +20,8 @@ const OPENCODE_SESSION_MODELS = new Set([
   'glm-5.3-flash',
   'minimax-m3',
   'kimi-k2.5',
-  'mimo-v2.5-pro',
-  'mimo-v2.5',
+  'mimo-v2.6-pro',
+  'mimo-v2.6-flash',
   'kimi-k2.6',
 ])
 
